@@ -1,0 +1,25 @@
+# Entornos Virtuales de Python
+venv/
+env/
+ENV/
+.venv/
+
+# Archivos compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Bases de datos locales
+*.sqlite3
+db.sqlite3
+
+# Node.js (Por si acaso Angular no lo ignoró)
+node_modules/
+dist/
+
+# Variables de entorno
+.env
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
