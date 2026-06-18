@@ -1,0 +1,41 @@
+[1m[31m[2m7:26:54 p. m.[22m[1m [31m[1m[vite][22m[1m[31m [31m[2m(ssr)[22m[1m[31m [31mError when evaluating SSR module /main.server.mjs?timestamp=1781742405426: There is a new version of the pre-bundle for "C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/.angular/cache/21.2.16/FrontSentimiento/vite/deps_ssr/@angular_forms.js?v=dadd3fc2", a page reload is going to ask for it.[31m
+      at throwOutdatedRequest (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/chunks/config.js:8959:32)
+      at LoadPluginContext.load (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/chunks/config.js:8930:118)
+      at EnvironmentPluginContainer.load (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/chunks/config.js:28763:56)
+      at loadAndTransform (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/chunks/config.js:22628:43)
+      at doTransform (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/chunks/config.js:22597:17)
+      at async fetchModule (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/chunks/config.js:33997:15)
+      at async handleInvoke (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/chunks/config.js:25837:21)
+      at async EventEmitter.listenerForInvokeHandler (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/chunks/config.js:25892:13)[39m[22m
+[1m[31mAn unhandled exception occurred: There is a new version of the pre-bundle for "C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/.angular/cache/21.2.16/FrontSentimiento/vite/deps_ssr/@angular_forms.js?v=dadd3fc2", a page reload is going to ask for it.
+See "C:\Users\josec\AppData\Local\Temp\ng-UxAMps\angular-errors.log" for further details.[39m[22m
+uncaughtException Error: There is a new version of the pre-bundle for "C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/.angular/cache/21.2.16/FrontSentimiento/vite/deps_ssr/@angular_forms.js?v=dadd3fc2", a page reload is going to ask for it.
+    at throwOutdatedRequest (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/chunks/config.js:8959:32)
+    at LoadPluginContext.load (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/chunks/config.js:8930:118)
+    at EnvironmentPluginContainer.load (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/chunks/config.js:28763:56)
+    at loadAndTransform (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/chunks/config.js:22628:43)
+    at doTransform (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/chunks/config.js:22597:17)
+    at async fetchModule (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/chunks/config.js:33997:15)
+    at async handleInvoke (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/chunks/config.js:25837:21)
+    at async EventEmitter.listenerForInvokeHandler (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/chunks/config.js:25892:13) {
+  code: 'ERR_OUTDATED_OPTIMIZED_DEP',
+  runnerError: Error: RunnerError
+      at reviveInvokeError (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/module-runner.js:476:64)
+      at Object.invoke (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/module-runner.js:549:11)
+      at async SSRCompatModuleRunner.getModuleInformation (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/module-runner.js:1086:7)
+      at async request (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/module-runner.js:1103:83)
+      at async eval (C:\Users\josec\OneDrive\Escritorio\BlogSentimiento\FrontSentimiento\src\app\components\forgot-password\forgot-password.ts:3:1)
+      at async ESModulesEvaluator.runInlinedModule (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/module-runner.js:913:3)
+      at async SSRCompatModuleRunner.directRequest (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/module-runner.js:1146:59)
+      at async SSRCompatModuleRunner.directRequest (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/chunks/config.js:15111:22)
+      at async SSRCompatModuleRunner.cachedRequest (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/module-runner.js:1053:73)
+      at async SSRCompatModuleRunner.import (file:///C:/Users/josec/OneDrive/Escritorio/BlogSentimiento/FrontSentimiento/node_modules/vite/dist/node/module-runner.js:1014:10)
+}
+ERROR: Bad Request ("http://localhost:4200/login").
+Header "host" with value "localhost:4200" is not allowed.
+
+For more information, see https://angular.dev/best-practices/security#preventing-server-side-request-forgery-ssrf
+ERROR: Bad Request ("http://localhost:4200/login").
+Header "host" with value "localhost:4200" is not allowed.
+
+For more information, see https://angular.dev/best-practices/security#preventing-server-side-request-forgery-ssrf
