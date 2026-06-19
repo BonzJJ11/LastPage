@@ -1,0 +1,321 @@
+<div class="home-wrapper">
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="logo-container">
+      <!-- Icono de Página Pasada simulado -->
+      <div style="background:#b85c38; color:white; padding:4px 8px; border-radius:8px;">
+        <i-lucide [img]="PenIcon" size="18"></i-lucide>
+      </div>
+      Página Pasada
+    </div>
+
+    <div class="nav-links">
+      <div class="nav-link active">
+        <i-lucide [img]="HomeIcon" size="18"></i-lucide> Inicio
+      </div>
+      <div class="nav-link">
+        <i-lucide [img]="CompassIcon" size="18"></i-lucide> Explorar
+      </div>
+      <div class="nav-link">
+        <i-lucide [img]="UsersIcon" size="18"></i-lucide> Comunidades
+      </div>
+    </div>
+
+    <div class="search-bar">
+      <i-lucide [img]="SearchIcon" size="18" class="search-icon"></i-lucide>
+      <input type="text" pInputText placeholder="Buscar historias, personas..." />
+    </div>
+
+    <div class="nav-actions">
+      <p-button label="Escribir" icon="pi pi-pencil" styleClass="btn-escribir" (onClick)="abrirEscribir()">
+        <ng-template pTemplate="icon">
+          <i-lucide [img]="PenIcon" size="16" style="margin-right: 5px;"></i-lucide>
+        </ng-template>
+      </p-button>
+      
+      <i-lucide [img]="BellIcon" size="20" style="color: #666; cursor: pointer;"></i-lucide>
+      
+      <div class="profile-trigger" (click)="op.toggle($event)">
+        <div class="avatar" style="background-color: #d67c5e;">{{ activeUsername.charAt(0).toUpperCase() }}</div>
+        <span style="font-size: 0.9rem; font-weight: 500; color: #555;">{{ activeUsername }}</span>
+        <i-lucide [img]="ChevronDownIcon" size="16"></i-lucide>
+      </div>
+
+      <!-- Menú de Usuario -->
+      <p-popover #op [style]="{width: '250px'}">
+        <ng-template pTemplate>
+          <div style="padding-bottom: 10px; border-bottom: 1px solid #eaeaea; margin-bottom: 10px;">
+            <div style="font-weight: 600; color: #333;">Mi cuenta</div>
+            <div style="font-size: 0.8rem; color: #888;">@{{ activeUsername }}</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-left"><i-lucide [img]="UserIcon" size="16"></i-lucide> Mi perfil</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-left"><i-lucide [img]="BookmarkIcon" size="16"></i-lucide> Guardados</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-item-left"><i-lucide [img]="SettingsIcon" size="16"></i-lucide> Configuración</div>
+          </div>
+          <div class="menu-item" (click)="cerrarSesion()" style="color: #F44336; margin-top: 10px; border-top: 1px solid #eaeaea; padding-top: 15px; border-radius: 0;">
+            <div class="menu-item-left"><i-lucide [img]="LogOutIcon" size="16"></i-lucide> Cerrar sesión</div>
+          </div>
+        </ng-template>
+      </p-popover>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar-left">
+      <div class="menu-section">
+        <div class="menu-title">Principal</div>
+        <div class="menu-item active">
+          <div class="menu-item-left"><i-lucide [img]="HomeIcon" size="18"></i-lucide> Inicio</div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-item-left"><i-lucide [img]="CompassIcon" size="18"></i-lucide> Explorar</div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-item-left"><i-lucide [img]="BookmarkIcon" size="18"></i-lucide> Guardados</div>
+          <div class="badge">3</div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-item-left"><i-lucide [img]="MessageSquareIcon" size="18"></i-lucide> Mensajes</div>
+          <div class="badge" style="background-color: #333;">5</div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-item-left"><i-lucide [img]="BellIcon" size="18"></i-lucide> Notificaciones</div>
+          <div class="badge">4</div>
+        </div>
+      </div>
+
+      <div class="menu-section">
+        <div class="menu-title">Categorías</div>
+        <div class="menu-item"><div class="menu-item-left"><i-lucide [img]="HeartIcon" size="16" style="color: #f44336;"></i-lucide> Relaciones</div></div>
+        <div class="menu-item"><div class="menu-item-left"><i-lucide [img]="CompassIcon" size="16" style="color: #ff9800;"></i-lucide> Superación</div></div>
+        <div class="menu-item"><div class="menu-item-left"><i-lucide [img]="UsersIcon" size="16" style="color: #2196f3;"></i-lucide> Familia</div></div>
+      </div>
+
+      <div class="menu-section">
+        <div class="menu-title">Tendencias</div>
+        <div class="tag-item">
+          <div>
+            <div class="tag-name"># superación personal</div>
+            <div class="tag-count">2.4K posts</div>
+          </div>
+          <span style="color: #ff9800;">🔥</span>
+        </div>
+        <div class="tag-item">
+          <div>
+            <div class="tag-name"># ansiedad</div>
+            <div class="tag-count">1.8K posts</div>
+          </div>
+          <span style="color: #ff9800;">🔥</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- FEED -->
+    <main class="feed">
+      <div class="feed-container">
+        
+        <div class="welcome-banner">
+          <div class="welcome-text">
+            <h2><i-lucide [img]="SunIcon" size="24" style="color: #ffb300;"></i-lucide> Buenas tardes, bienvenido de nuevo.</h2>
+            <p>Hay <span class="highlight">128 historias nuevas</span> esperándote hoy.</p>
+          </div>
+          <p-button label="Escribir" styleClass="btn-escribir p-button-sm" (onClick)="abrirEscribir()">
+            <ng-template pTemplate="icon">
+              <i-lucide [img]="PenIcon" size="14" style="margin-right: 5px;"></i-lucide>
+            </ng-template>
+          </p-button>
+        </div>
+
+        <div class="filters">
+          <button class="filter-btn active">✨ Recientes</button>
+          <button class="filter-btn">🔥 Tendencia</button>
+          <button class="filter-btn">↑ Top hoy</button>
+        </div>
+
+        <!-- POST 1 -->
+        <div class="post-card">
+          <div class="post-header">
+            <div class="author-info">
+              <div class="author-avatar" style="background-color: #f44336;">V</div>
+              <div class="author-details">
+                <h4>Valentina M.</h4>
+                <p>hace 23 min · 4 min de lectura</p>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="color: #ff9800; font-size: 0.8rem; font-weight: 600;">🔥 Tendencia</span>
+              <i-lucide [img]="MoreIcon" size="18" style="color: #888; cursor: pointer;"></i-lucide>
+            </div>
+          </div>
+          <div class="post-tag"><i-lucide [img]="HeartIcon" size="12"></i-lucide> Superación</div>
+          <h3>Después de 3 años, finalmente hablé con alguien sobre lo que viví</h3>
+          <p class="content">No sabía cómo empezar. Durante años cargué eso en silencio, pensando que nadie iba a entender o que iban a juzgarme. Hoy quiero compartirlo porque quizás alguien más se siente igual y necesita saber que no está solo...</p>
+          
+          <div class="post-footer">
+            <div class="post-actions-left">
+              <button class="action-btn"><i-lucide [img]="HeartIcon" size="18"></i-lucide> 248</button>
+              <button class="action-btn"><i-lucide [img]="MessageSquareIcon" size="18"></i-lucide> 37</button>
+            </div>
+            <div class="post-actions-right">
+              <button class="action-btn"><i-lucide [img]="ShareIcon" size="18"></i-lucide></button>
+              <button class="action-btn"><i-lucide [img]="BookmarkIcon" size="18"></i-lucide></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- POST 2 (ANÓNIMO) -->
+        <div class="post-card">
+          <div class="post-header">
+            <div class="author-info">
+              <div class="author-avatar anon">?</div>
+              <div class="author-details">
+                <h4>Usuario anónimo <span class="anon-badge">Anónimo</span></h4>
+                <p>hace 1 hora · 2 min de lectura</p>
+              </div>
+            </div>
+            <i-lucide [img]="MoreIcon" size="18" style="color: #888; cursor: pointer;"></i-lucide>
+          </div>
+          <div class="post-tag"><i-lucide [img]="HeartIcon" size="12"></i-lucide> Relaciones</div>
+          <h3>¿Cómo se supera el fin de una relación de 6 años?</h3>
+          <p class="content">La semana pasada tomamos la decisión de terminar. No hubo una razón enorme, simplemente dejamos de crecer juntos. Pero el silencio de la casa se siente más pesado de lo que esperaba. ¿Han pasado por algo así?</p>
+          
+          <div class="post-footer">
+            <div class="post-actions-left">
+              <button class="action-btn"><i-lucide [img]="HeartIcon" size="18"></i-lucide> 102</button>
+              <button class="action-btn"><i-lucide [img]="MessageSquareIcon" size="18"></i-lucide> 15</button>
+            </div>
+            <div class="post-actions-right">
+              <button class="action-btn"><i-lucide [img]="ShareIcon" size="18"></i-lucide></button>
+              <button class="action-btn"><i-lucide [img]="BookmarkIcon" size="18"></i-lucide></button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- RIGHT SIDEBAR -->
+    <aside class="sidebar-right">
+      <div class="share-card">
+        <h3>¿Tienes algo que contar?</h3>
+        <p>Compartir tu historia puede ayudarte a sanar y a que otros se sientan menos solos.</p>
+        <button class="btn-share" (click)="abrirEscribir()">
+          <i-lucide [img]="PenIcon" size="16"></i-lucide> Escribir historia
+        </button>
+      </div>
+
+      <div class="widget">
+        <div class="widget-header">
+          <h4><div class="online-dot"></div> Comunidad en línea</h4>
+          <span class="active-count">4 activos</span>
+        </div>
+        <div class="user-list">
+          <div class="user-item">
+            <div class="user-item-info">
+              <div class="user-avatar" style="background-color: #f44336;">V</div>
+              <div class="user-item-text">
+                <h5>Valentina M.</h5>
+                <p>Escribiendo...</p>
+              </div>
+            </div>
+            <button class="btn-chat">Chat</button>
+          </div>
+          <div class="user-item">
+            <div class="user-item-info">
+              <div class="user-avatar" style="background-color: #4CAF50;">M</div>
+              <div class="user-item-text">
+                <h5>Marco R.</h5>
+                <p>En línea</p>
+              </div>
+            </div>
+            <button class="btn-chat">Chat</button>
+          </div>
+          <div class="user-item">
+            <div class="user-item-info">
+              <div class="user-avatar anon">?</div>
+              <div class="user-item-text">
+                <h5>Anónimo</h5>
+                <p>En línea</p>
+              </div>
+            </div>
+            <button class="btn-chat">Chat</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget">
+        <div class="widget-header">
+          <h4>Comunidad hoy</h4>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Nuevas historias</span>
+          <span class="stat-value">128</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Personas apoyadas</span>
+          <span class="stat-value green">2,341</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Mensajes de apoyo</span>
+          <span class="stat-value blue">876</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Reacciones de empatía</span>
+          <span class="stat-value red">5,102</span>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- MODAL DE ESCRIBIR HISTORIA -->
+  <p-dialog [(visible)]="displayEscribirDialog" [modal]="true" [draggable]="false" [resizable]="false" [style]="{width: '600px'}" styleClass="custom-dialog">
+    <ng-template pTemplate="header">
+      <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-start;">
+        <div class="dialog-user-info">
+          <div class="avatar" style="width: 40px; height: 40px;">{{ activeUsername.charAt(0).toUpperCase() }}</div>
+          <div>
+            <div style="font-weight: 600; font-size: 0.95rem;">@{{ activeUsername }}</div>
+            <div class="dialog-anon-badge"><i-lucide [img]="LockIcon" size="12"></i-lucide> Anónimo</div>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+
+    <div class="category-chips">
+      <div class="chip">Relaciones</div>
+      <div class="chip active">Superación</div>
+      <div class="chip">Familia</div>
+      <div class="chip">Salud Mental</div>
+      <div class="chip">Crecimiento</div>
+      <div class="chip">Trabajo</div>
+    </div>
+
+    <input type="text" pInputText placeholder="Título de tu historia..." class="editor-title" [(ngModel)]="tituloHistoria" />
+    <textarea pTextarea [autoResize]="true" placeholder="Comparte tu historia, tus pensamientos, lo que sientes... Este es tu espacio seguro." class="editor-content" [(ngModel)]="contenidoHistoria"></textarea>
+
+    <div style="text-align: right; font-size: 0.75rem; color: #aaa; margin-bottom: 10px;">{{ contenidoHistoria.length }} caracteres</div>
+
+    <div class="editor-footer">
+      <div class="editor-tools">
+        <i-lucide [img]="ImageIcon" size="20"></i-lucide>
+        <i-lucide [img]="TagIcon" size="20"></i-lucide>
+        <i-lucide [img]="SmileIcon" size="20"></i-lucide>
+      </div>
+      <p-button label="Publicar historia" styleClass="btn-escribir" [disabled]="!tituloHistoria || !contenidoHistoria">
+        <ng-template pTemplate="icon">
+          <i-lucide [img]="ShareIcon" size="16" style="margin-right: 5px;"></i-lucide>
+        </ng-template>
+      </p-button>
+    </div>
+  </p-dialog>
+
+</div>

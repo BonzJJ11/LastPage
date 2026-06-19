@@ -1,3 +1,4 @@
+<p-toast position="top-right"></p-toast>
 <div class="login-container">
   <!-- Left Panel -->
   <div class="left-panel">
@@ -50,21 +51,20 @@
 
         <form class="login-form" #loginForm="ngForm" (ngSubmit)="onSubmit(loginForm)" novalidate>
           <div class="form-group">
-            <label for="email">Correo electrónico</label>
+            <label for="username">Usuario</label>
             <input 
                pInputText
-               type="email" 
-               id="email" 
-               name="email"
-               [(ngModel)]="email"
-               #emailCtrl="ngModel"
-               placeholder="tu@email.com" 
+               type="text" 
+               id="username" 
+               name="username"
+               [(ngModel)]="username"
+               #usernameCtrl="ngModel"
+               placeholder="Tu nombre de usuario" 
                required
-               email
-               [ngClass]="{'ng-invalid ng-dirty': (emailCtrl.invalid && emailCtrl.touched) || (emailCtrl.invalid && isSubmitted)}"
+               [ngClass]="{'ng-invalid ng-dirty': (usernameCtrl.invalid && usernameCtrl.touched) || (usernameCtrl.invalid && isSubmitted)}"
                class="w-full"
             >
-            <div *ngIf="(emailCtrl.invalid && emailCtrl.touched) || (emailCtrl.invalid && isSubmitted)" class="error-msg">Por favor, ingresa un correo electrónico válido.</div>
+            <div *ngIf="(usernameCtrl.invalid && usernameCtrl.touched) || (usernameCtrl.invalid && isSubmitted)" class="error-msg">Por favor, ingresa tu usuario.</div>
           </div>
 
           <div class="form-group">
@@ -95,7 +95,7 @@
               [(ngModel)]="rememberMe" 
               [binary]="true"
             ></p-checkbox>
-            <label for="remember" style="font-size: 0.9rem; color: var(--text-muted); cursor: pointer; margin-bottom: 0;">Recordar mi correo electrónico</label>
+            <label for="remember" style="font-size: 0.9rem; color: var(--text-muted); cursor: pointer; margin-bottom: 0;">Recordar mi usuario</label>
           </div>
 
           <p-button 
