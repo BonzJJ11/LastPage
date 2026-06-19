@@ -60,8 +60,24 @@ export class Register {
           }, 1500);
         },
         error: (err) => {
-          console.error(err);
-          this.messageService.add({ severity: 'error', summary: 'Oops...', detail: 'Error al crear la cuenta. Puede que el correo o usuario ya existan.' });
+          console.error('Error completo de la API:', err);
+          
+          let mensajeError = 'Error al crear la cuenta. Verifica tus datos o intenta más tarde.';
+          
+          // Si es un error de validación de Django (HTTP 400)
+          if (err.status === 400 && err.error) {
+            // Extraer el primer mensaje de error que mande Django
+            const primerError = Object.values(err.error)[0];
+            if (Array.isArray(primerError)) {
+              mensajeError = primerError[0]; // Ej: "usuario with this correo already exists."
+            } else if (typeof primerError === 'string') {
+              mensajeError = primerError;
+            }
+          } else if (err.status === 0) {
+            mensajeError = 'No se pudo conectar con el servidor. ¿Está encendido el backend?';
+          }
+
+          this.messageService.add({ severity: 'error', summary: 'Oops...', detail: mensajeError });
         }
       });
     }

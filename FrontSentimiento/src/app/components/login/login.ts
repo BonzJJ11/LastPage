@@ -33,20 +33,25 @@ export class Login implements OnInit {
   readonly HeartIcon = Heart;
 
   ngOnInit() {
-    const savedEmail = localStorage.getItem('lastpage_remembered_email');
-    if (savedEmail) {
-      this.email = savedEmail;
-      this.rememberMe = true;
+    // Verificamos si estamos en el navegador para que el Server-Side Rendering (SSR) no falle
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const savedEmail = localStorage.getItem('lastpage_remembered_email');
+      if (savedEmail) {
+        this.email = savedEmail;
+        this.rememberMe = true;
+      }
     }
   }
 
   onSubmit(form: any) {
     this.isSubmitted = true;
     if (form.valid) {
-      if (this.rememberMe) {
-        localStorage.setItem('lastpage_remembered_email', this.email);
-      } else {
-        localStorage.removeItem('lastpage_remembered_email');
+      if (typeof window !== 'undefined' && window.localStorage) {
+        if (this.rememberMe) {
+          localStorage.setItem('lastpage_remembered_email', this.email);
+        } else {
+          localStorage.removeItem('lastpage_remembered_email');
+        }
       }
       
       console.log('Login successful for:', this.email);
