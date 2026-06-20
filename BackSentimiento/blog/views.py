@@ -2,8 +2,16 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth.hashers import check_password
-from .models import Usuario
-from .serializers import UsuarioSerializer
+from .models import Usuario, Categoria, Publicacion
+from .serializers import UsuarioSerializer, CategoriaSerializer, PublicacionSerializer
+
+class PublicacionViewSet(viewsets.ModelViewSet):
+    queryset = Publicacion.objects.all().order_by('-fecha_publicacion')
+    serializer_class = PublicacionSerializer
+
+class CategoriaViewSet(viewsets.ModelViewSet):
+    queryset = Categoria.objects.all()
+    serializer_class = CategoriaSerializer
 
 class UsuarioViewSet(viewsets.ModelViewSet):
     """
@@ -27,8 +35,12 @@ def login_view(request):
         
         # Verificar la contraseña (soporta encriptada y texto plano por si acaso)
         if check_password(password, usuario.password) or password == usuario.password:
-            # Login exitoso, devolvemos un token mock (luego se puede cambiar por JWT)
-            return Response({'mensaje': 'Login exitoso', 'token': 'fake-jwt-token-12345'})
+            return Response({
+                'mensaje': 'Login exitoso', 
+                'token': 'fake-jwt-token-12345',
+                'id_rol': usuario.id_rol_id,
+                'id_usuario': usuario.id_usuario
+            })
         else:
             return Response({'error': 'Contraseña incorrecta'}, status=status.HTTP_401_UNAUTHORIZED)
             

@@ -82,6 +82,12 @@ export class Login implements OnInit {
           // Guardamos el usuario activo en localStorage para mostrarlo en el Home
           if (typeof window !== 'undefined' && window.localStorage) {
             localStorage.setItem('active_username', this.username);
+            if (respuesta && respuesta.id_rol) {
+              localStorage.setItem('user_role', respuesta.id_rol.toString());
+            }
+            if (respuesta && respuesta.id_usuario) {
+              localStorage.setItem('user_id', respuesta.id_usuario.toString());
+            }
           }
 
           this.messageService.add({ severity: 'success', summary: 'Bienvenido', detail: 'Inicio de sesión exitoso' });

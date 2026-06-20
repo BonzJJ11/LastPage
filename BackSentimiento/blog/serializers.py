@@ -1,6 +1,22 @@
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
-from .models import Usuario
+from .models import Usuario, Categoria
+
+from .models import Usuario, Categoria, Publicacion
+
+class CategoriaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Categoria
+        fields = '__all__'
+
+class PublicacionSerializer(serializers.ModelSerializer):
+    nombre_usuario = serializers.CharField(source='id_usuario.nombre', read_only=True)
+    nombre_categoria = serializers.CharField(source='id_categoria.nombre_categoria', read_only=True)
+
+    class Meta:
+        model = Publicacion
+        fields = '__all__'
+
 
 class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
