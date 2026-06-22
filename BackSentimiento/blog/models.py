@@ -103,10 +103,17 @@ class Reaccion(models.Model):
         unique_together = (('id_usuario', 'id_publicacion'),)
 
 class Conversacion(models.Model):
+    ESTADO_CHOICES = [
+        ('PENDIENTE', 'Pendiente'),
+        ('ACEPTADA', 'Aceptada'),
+        ('RECHAZADA', 'Rechazada'),
+    ]
+
     id_conversacion = models.AutoField(primary_key=True)
     id_usuario_inicio = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, db_column='id_usuario_inicio', related_name='conversaciones_iniciadas')
     id_usuario_destino = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, db_column='id_usuario_destino', related_name='conversaciones_recibidas')
-    aceptada = models.BooleanField(default=False)
+    id_publicacion = models.ForeignKey(Publicacion, on_delete=models.DO_NOTHING, db_column='id_publicacion_id', null=True, blank=True)
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='PENDIENTE')
     fecha_creacion = models.DateTimeField(default=timezone.now)
 
     class Meta:

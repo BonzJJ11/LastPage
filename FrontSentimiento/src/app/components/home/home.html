@@ -76,23 +76,22 @@
     <aside class="sidebar-left">
       <div class="menu-section">
         <div class="menu-title">Principal</div>
-        <div class="menu-item active">
+        <div class="menu-item" [class.active]="currentTab === 'home'" (click)="cambiarTab('home')">
           <div class="menu-item-left"><i-lucide [img]="HomeIcon" size="18"></i-lucide> Inicio</div>
         </div>
         <div class="menu-item">
           <div class="menu-item-left"><i-lucide [img]="CompassIcon" size="18"></i-lucide> Explorar</div>
         </div>
-        <div class="menu-item">
+        <div class="menu-item" [class.active]="currentTab === 'guardados'" (click)="cambiarTab('guardados')">
           <div class="menu-item-left"><i-lucide [img]="BookmarkIcon" size="18"></i-lucide> Guardados</div>
-          <div class="badge">3</div>
+          <div class="badge" *ngIf="publicacionesGuardadas.length > 0">{{ publicacionesGuardadas.length }}</div>
         </div>
-        <div class="menu-item">
+        <div class="menu-item" [class.active]="currentTab === 'mensajes'" (click)="cambiarTab('mensajes')">
           <div class="menu-item-left"><i-lucide [img]="MessageSquareIcon" size="18"></i-lucide> Mensajes</div>
-          <div class="badge" style="background-color: #333;">5</div>
         </div>
-        <div class="menu-item">
+        <div class="menu-item" [class.active]="currentTab === 'notificaciones'" (click)="cambiarTab('notificaciones')">
           <div class="menu-item-left"><i-lucide [img]="BellIcon" size="18"></i-lucide> Notificaciones</div>
-          <div class="badge">4</div>
+          <div class="badge" *ngIf="notificacionesNoLeidas > 0">{{ notificacionesNoLeidas }}</div>
         </div>
       </div>
 
@@ -131,73 +130,215 @@
     <main class="feed">
       <div class="feed-container">
         
-        <div class="welcome-banner">
-          <div class="welcome-text">
-            <h2><i-lucide [img]="SunIcon" size="24" style="color: #ffb300;"></i-lucide> Buenas tardes, bienvenido de nuevo.</h2>
-            <p>Hay <span class="highlight">128 historias nuevas</span> esperándote hoy.</p>
+        <!-- ==================== HOME TAB ==================== -->
+        <ng-container *ngIf="currentTab === 'home'">
+          <div class="welcome-banner">
+            <div class="welcome-text">
+              <h2><i-lucide [img]="SunIcon" size="24" style="color: #ffb300;"></i-lucide> Buenas tardes, bienvenido de nuevo.</h2>
+              <p>Hay <span class="highlight">{{ publicaciones.length }} historias</span> esperándote hoy.</p>
+            </div>
+            <p-button label="Escribir" styleClass="btn-escribir p-button-sm" (onClick)="abrirEscribir()">
+              <ng-template pTemplate="icon">
+                <i-lucide [img]="PenIcon" size="14" style="margin-right: 5px;"></i-lucide>
+              </ng-template>
+            </p-button>
           </div>
-          <p-button label="Escribir" styleClass="btn-escribir p-button-sm" (onClick)="abrirEscribir()">
-            <ng-template pTemplate="icon">
-              <i-lucide [img]="PenIcon" size="14" style="margin-right: 5px;"></i-lucide>
-            </ng-template>
-          </p-button>
-        </div>
 
-        <div class="filters">
-          <button class="filter-btn active">✨ Recientes</button>
-          <button class="filter-btn">🔥 Tendencia</button>
-          <button class="filter-btn">↑ Top hoy</button>
-        </div>
+          <div class="filters">
+            <button class="filter-btn active">✨ Recientes</button>
+            <button class="filter-btn">🔥 Tendencia</button>
+            <button class="filter-btn">↑ Top hoy</button>
+          </div>
 
-        <!-- POSTS DINÁMICOS DESDE LA BASE DE DATOS -->
-        <div class="post-card" *ngFor="let pub of publicaciones">
-          <div class="post-header">
+          <!-- POSTS DINÁMICOS DESDE LA BASE DE DATOS -->
+          <div class="post-card" *ngFor="let pub of publicaciones">
+            <div class="post-header">
+              
+              <!-- INFORMACIÓN AUTOR (Anónimo o Público) -->
+              <div class="author-info">
+                <!-- Avatar -->
+                <div class="author-avatar" *ngIf="pub.visibilidad === 'PUBLICO'" style="background-color: #f44336;">
+                  {{ pub.nombre_usuario ? pub.nombre_usuario.charAt(0).toUpperCase() : 'U' }}
+                </div>
+                <div class="author-avatar anon" *ngIf="pub.visibilidad === 'ANONIMO'">
+                  ?
+                </div>
+                
+                <!-- Detalles -->
+                <div class="author-details">
+                  <h4 *ngIf="pub.visibilidad === 'PUBLICO'">{{ pub.nombre_usuario }}</h4>
+                  <h4 *ngIf="pub.visibilidad === 'ANONIMO'">Usuario anónimo <span class="anon-badge">Anónimo</span></h4>
+                  <p>{{ pub.tiempoStr }}</p>
+                </div>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <i-lucide [img]="MoreIcon" size="18" style="color: #888; cursor: pointer;" (click)="opMenuPub.toggle($event)" *ngIf="pub.id_usuario === userId"></i-lucide>
+                
+                <p-popover #opMenuPub [style]="{width: '150px'}">
+                  <div class="menu-item" (click)="abrirEditarPublicacion(pub); opMenuPub.hide()"><i-lucide [img]="PenIcon" size="16"></i-lucide> Editar</div>
+                  <div class="menu-item" (click)="eliminarPublicacion(pub.id_publicacion); opMenuPub.hide()" style="color: #F44336;"><i-lucide [img]="TrashIcon" size="16"></i-lucide> Eliminar</div>
+                </p-popover>
+              </div>
+            </div>
             
-            <!-- INFORMACIÓN AUTOR (Anónimo o Público) -->
-            <div class="author-info">
-              <!-- Avatar -->
-              <div class="author-avatar" *ngIf="pub.visibilidad === 'PUBLICO'" style="background-color: #f44336;">
-                {{ pub.nombre_usuario ? pub.nombre_usuario.charAt(0).toUpperCase() : 'U' }}
+            <div class="post-tag"><i-lucide [img]="HeartIcon" size="12"></i-lucide> {{ pub.nombre_categoria }}</div>
+            
+            <h3>{{ pub.titulo }}</h3>
+            <p class="content">{{ pub.contenido }}</p>
+            
+            <div class="post-footer">
+              <div class="post-actions-left" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                <!-- Reacciones -->
+                <div style="display: flex; gap: 10px; align-items: center;">
+                  <button class="action-btn" (click)="opReacciones.toggle($event)">
+                    <i-lucide [img]="HeartIcon" size="18"></i-lucide> Reaccionar
+                  </button>
+                  <p-popover #opReacciones>
+                    <div style="display: flex; flex-direction: column; gap: 8px; padding: 10px;">
+                      <button class="p-button-text" style="text-align: left; background: none; border: none; cursor: pointer; padding: 5px;" (click)="reaccionar(pub, 'TE_ENTIENDO'); opReacciones.hide()">❤️ Te entiendo</button>
+                      <button class="p-button-text" style="text-align: left; background: none; border: none; cursor: pointer; padding: 5px;" (click)="reaccionar(pub, 'ME_PASO_IGUAL'); opReacciones.hide()">🤝 Me pasó igual</button>
+                      <button class="p-button-text" style="text-align: left; background: none; border: none; cursor: pointer; padding: 5px;" (click)="reaccionar(pub, 'SIGUE_ADELANTE'); opReacciones.hide()">🌱 Sigue adelante</button>
+                      <button class="p-button-text" style="text-align: left; background: none; border: none; cursor: pointer; padding: 5px;" (click)="reaccionar(pub, 'TENGO_UN_CONSEJO'); opReacciones.hide()">💡 Tengo un consejo</button>
+                    </div>
+                  </p-popover>
+                  
+                  <!-- Contadores de Reacciones -->
+                  <span class="reaction-count" *ngIf="pub.reacciones_resumen?.TE_ENTIENDO" style="font-size: 0.85rem; background: #f0f0f0; padding: 2px 6px; border-radius: 12px;">❤️ {{pub.reacciones_resumen.TE_ENTIENDO}}</span>
+                  <span class="reaction-count" *ngIf="pub.reacciones_resumen?.ME_PASO_IGUAL" style="font-size: 0.85rem; background: #f0f0f0; padding: 2px 6px; border-radius: 12px;">🤝 {{pub.reacciones_resumen.ME_PASO_IGUAL}}</span>
+                  <span class="reaction-count" *ngIf="pub.reacciones_resumen?.SIGUE_ADELANTE" style="font-size: 0.85rem; background: #f0f0f0; padding: 2px 6px; border-radius: 12px;">🌱 {{pub.reacciones_resumen.SIGUE_ADELANTE}}</span>
+                  <span class="reaction-count" *ngIf="pub.reacciones_resumen?.TENGO_UN_CONSEJO" style="font-size: 0.85rem; background: #f0f0f0; padding: 2px 6px; border-radius: 12px;">💡 {{pub.reacciones_resumen.TENGO_UN_CONSEJO}}</span>
+                </div>
+
+                <button class="action-btn" (click)="toggleComentarios(pub)">
+                  <i-lucide [img]="MessageSquareIcon" size="18"></i-lucide> {{ pub.comentarios_count || 0 }}
+                </button>
+                <button class="action-btn" (click)="abrirChat(pub)" *ngIf="pub.id_usuario !== userId"><i-lucide [img]="MessageCircleIcon" size="18"></i-lucide> Mensaje</button>
               </div>
-              <div class="author-avatar anon" *ngIf="pub.visibilidad === 'ANONIMO'">
-                ?
-              </div>
-              
-              <!-- Detalles -->
-              <div class="author-details">
-                <h4 *ngIf="pub.visibilidad === 'PUBLICO'">{{ pub.nombre_usuario }}</h4>
-                <h4 *ngIf="pub.visibilidad === 'ANONIMO'">Usuario anónimo <span class="anon-badge">Anónimo</span></h4>
-                <p>{{ pub.tiempoStr }}</p>
+              <div class="post-actions-right">
+                <button class="action-btn"><i-lucide [img]="ShareIcon" size="18"></i-lucide></button>
+                <button class="action-btn" (click)="guardarPublicacion(pub)"><i-lucide [img]="BookmarkIcon" size="18"></i-lucide></button>
               </div>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <i-lucide [img]="MoreIcon" size="18" style="color: #888; cursor: pointer;" (click)="opMenuPub.toggle($event)" *ngIf="pub.id_usuario === userId"></i-lucide>
+            <!-- SECCIÓN DE COMENTARIOS -->
+            <div class="comments-section" *ngIf="pub.mostrarComentarios" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+              <div class="comment-list">
+                <div class="comment-item" *ngFor="let com of pub.comentariosList" style="margin-bottom: 10px; background: #f9f9f9; padding: 10px; border-radius: 8px;">
+                  <div style="font-weight: 600; font-size: 0.9rem;">
+                    {{ com.nombre_usuario }} <span *ngIf="com.visibilidad === 'ANONIMO'" style="font-size: 0.8rem; background: #e0e0e0; padding: 2px 6px; border-radius: 4px; color: #555;">Anónimo</span>
+                  </div>
+                  <div style="font-size: 0.95rem; color: #444; margin-top: 5px;">{{ com.contenido }}</div>
+                </div>
+              </div>
               
-              <p-popover #opMenuPub [style]="{width: '150px'}">
-                <div class="menu-item" (click)="abrirEditarPublicacion(pub); opMenuPub.hide()"><i-lucide [img]="PenIcon" size="16"></i-lucide> Editar</div>
-                <div class="menu-item" (click)="eliminarPublicacion(pub.id_publicacion); opMenuPub.hide()" style="color: #F44336;"><i-lucide [img]="TrashIcon" size="16"></i-lucide> Eliminar</div>
-              </p-popover>
+              <div class="add-comment" style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
+                <input type="text" pInputText placeholder="Escribe un comentario..." [(ngModel)]="pub.nuevoComentario" style="flex: 1;" (keyup.enter)="enviarComentario(pub)">
+                
+                <div (click)="pub.visibilidadComentario = (pub.visibilidadComentario === 'ANONIMO' ? 'PUBLICO' : 'ANONIMO')" 
+                     style="cursor: pointer; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; user-select: none;" 
+                     [ngStyle]="{'background-color': pub.visibilidadComentario === 'ANONIMO' ? '#f5ebff' : '#e0f2f1', 'color': pub.visibilidadComentario === 'ANONIMO' ? '#8b5cf6' : '#009688'}">
+                  <i-lucide [img]="pub.visibilidadComentario === 'ANONIMO' ? LockIcon : GlobeIcon" size="14" style="vertical-align: middle;"></i-lucide>
+                  {{ pub.visibilidadComentario === 'ANONIMO' ? 'Anónimo' : 'Público' }}
+                </div>
+                
+                <p-button icon="pi pi-send" (onClick)="enviarComentario(pub)" styleClass="p-button-rounded"></p-button>
+              </div>
             </div>
           </div>
-          
-          <div class="post-tag"><i-lucide [img]="HeartIcon" size="12"></i-lucide> {{ pub.nombre_categoria }}</div>
-          
-          <h3>{{ pub.titulo }}</h3>
-          <p class="content">{{ pub.contenido }}</p>
-          
-          <div class="post-footer">
-            <div class="post-actions-left">
-              <button class="action-btn"><i-lucide [img]="HeartIcon" size="18"></i-lucide> 0</button>
-              <button class="action-btn"><i-lucide [img]="MessageSquareIcon" size="18"></i-lucide> 0</button>
-              <button class="action-btn" (click)="abrirChat(pub)"><i-lucide [img]="MessageCircleIcon" size="18"></i-lucide> Mensaje</button>
+        </ng-container>
+
+        <!-- ==================== GUARDADOS TAB ==================== -->
+        <ng-container *ngIf="currentTab === 'guardados'">
+          <div style="margin-bottom: 20px;">
+            <h2><i-lucide [img]="BookmarkIcon" size="24" style="color: #b85c38;"></i-lucide> Publicaciones Guardadas</h2>
+            <p *ngIf="publicacionesGuardadas.length === 0" style="color: #666;">No tienes publicaciones guardadas.</p>
+          </div>
+
+          <div class="post-card" *ngFor="let pub of publicacionesGuardadas">
+            <div class="post-header">
+              <div class="author-info">
+                <div class="author-avatar" *ngIf="pub.visibilidad === 'PUBLICO'" style="background-color: #f44336;">
+                  {{ pub.nombre_usuario ? pub.nombre_usuario.charAt(0).toUpperCase() : 'U' }}
+                </div>
+                <div class="author-avatar anon" *ngIf="pub.visibilidad === 'ANONIMO'">?</div>
+                
+                <div class="author-details">
+                  <h4 *ngIf="pub.visibilidad === 'PUBLICO'">{{ pub.nombre_usuario }}</h4>
+                  <h4 *ngIf="pub.visibilidad === 'ANONIMO'">Usuario anónimo <span class="anon-badge">Anónimo</span></h4>
+                  <p>{{ pub.tiempoStr }}</p>
+                </div>
+              </div>
+
+              <div>
+                <button pButton icon="pi pi-bookmark-fill" class="p-button-rounded p-button-text p-button-danger" (click)="quitarGuardado(pub.id_guardado)" pTooltip="Quitar"></button>
+              </div>
             </div>
-            <div class="post-actions-right">
-              <button class="action-btn"><i-lucide [img]="ShareIcon" size="18"></i-lucide></button>
-              <button class="action-btn"><i-lucide [img]="BookmarkIcon" size="18"></i-lucide></button>
+            
+            <h3>{{ pub.titulo }}</h3>
+            <p class="content">{{ pub.contenido }}</p>
+          </div>
+        </ng-container>
+
+        <!-- ==================== MENSAJES TAB ==================== -->
+        <ng-container *ngIf="currentTab === 'mensajes'">
+          <div style="margin-bottom: 20px;">
+            <h2><i-lucide [img]="MessageSquareIcon" size="24" style="color: #2196f3;"></i-lucide> Bandeja de Mensajes</h2>
+            <p *ngIf="conversaciones.length === 0" style="color: #666;">No tienes mensajes.</p>
+          </div>
+
+          <div class="conversacion-list">
+            <div class="post-card" *ngFor="let conv of conversaciones" style="display: flex; justify-content: space-between; align-items: center; padding: 15px; cursor: pointer; transition: background 0.2s;" (click)="abrirChat(conv)" onmouseover="this.style.background='#f9f9f9'" onmouseout="this.style.background='#fff'">
+              <div style="display: flex; gap: 15px; align-items: center;">
+                <div class="author-avatar" [ngClass]="{'anon': conv.nombre_mostrar.includes('Anónimo')}">
+                  {{ conv.nombre_mostrar.includes('Anónimo') ? '?' : conv.nombre_mostrar.charAt(0).toUpperCase() }}
+                </div>
+                <div>
+                  <h4 style="margin: 0; font-size: 1.1rem; color: #333;">{{ conv.nombre_mostrar }}</h4>
+                  <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #777;">Estado: 
+                    <span [ngStyle]="{'color': conv.estado === 'ACEPTADA' ? 'green' : (conv.estado === 'PENDIENTE' ? 'orange' : 'red')}">{{ conv.estado }}</span>
+                  </p>
+                </div>
+              </div>
+              
+              <!-- Si soy destino y esta pendiente, puedo aceptar o rechazar -->
+              <div *ngIf="!conv.soy_inicio && conv.estado === 'PENDIENTE'" style="display: flex; gap: 10px;">
+                <p-button icon="pi pi-check" styleClass="p-button-rounded p-button-success p-button-text" (onClick)="aceptarConversacion(conv); $event.stopPropagation();" pTooltip="Aceptar"></p-button>
+                <p-button icon="pi pi-times" styleClass="p-button-rounded p-button-danger p-button-text" (onClick)="rechazarConversacion(conv); $event.stopPropagation();" pTooltip="Rechazar"></p-button>
+              </div>
+              
+              <div *ngIf="conv.soy_inicio && conv.estado === 'PENDIENTE'" style="color: #888; font-size: 0.9rem;">
+                Esperando respuesta...
+              </div>
             </div>
           </div>
-        </div>
+        </ng-container>
+
+        <!-- ==================== NOTIFICACIONES TAB ==================== -->
+        <ng-container *ngIf="currentTab === 'notificaciones'">
+          <div style="margin-bottom: 20px;">
+            <h2><i-lucide [img]="BellIcon" size="24" style="color: #ff9800;"></i-lucide> Notificaciones</h2>
+            <p *ngIf="notificaciones.length === 0" style="color: #666;">No tienes notificaciones.</p>
+          </div>
+
+          <div class="notificacion-list">
+            <div *ngFor="let notif of notificaciones" 
+                 style="background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 10px; border: 1px solid #eaeaea; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s;"
+                 [ngStyle]="{'border-left': notif.leida ? '1px solid #eaeaea' : '4px solid #b85c38', 'background': notif.leida ? '#fff' : '#fffaf8'}">
+              
+              <div style="flex: 1; cursor: pointer;" (click)="marcarNotificacionLeida(notif)">
+                <h4 style="margin: 0 0 5px 0; color: #333; display: flex; align-items: center; gap: 8px;">
+                  <i-lucide [img]="BellIcon" size="16" [ngStyle]="{'color': notif.leida ? '#aaa' : '#b85c38'}"></i-lucide> 
+                  {{ notif.titulo }}
+                </h4>
+                <p style="margin: 0; color: #666; font-size: 0.95rem;">{{ notif.mensaje }}</p>
+                <p style="margin: 5px 0 0 0; color: #aaa; font-size: 0.8rem;">{{ calcularTiempo(notif.fecha_creacion) }}</p>
+              </div>
+              
+              <div *ngIf="!notif.leida" style="width: 8px; height: 8px; border-radius: 50%; background-color: #b85c38;"></div>
+            </div>
+          </div>
+        </ng-container>
 
       </div>
     </main>
@@ -386,42 +527,39 @@
   </p-dialog>
 
   <!-- VENTANA DE CHAT FLOTANTE -->
-  <div class="chat-window" *ngIf="chatActivo">
+  <div class="chat-window" *ngIf="chatActivo && conversacionActiva">
     <div class="chat-header">
       <div class="chat-header-info">
-        <div class="chat-avatar" [ngClass]="{'anon': chatUsuario.visibilidad === 'ANONIMO'}">
-          {{ chatUsuario.visibilidad === 'PUBLICO' ? chatUsuario.nombre_usuario.charAt(0).toUpperCase() : '?' }}
+        <div class="chat-avatar" [ngClass]="{'anon': conversacionActiva.nombre_mostrar.includes('Anónimo')}">
+          {{ conversacionActiva.nombre_mostrar.includes('Anónimo') ? '?' : conversacionActiva.nombre_mostrar.charAt(0).toUpperCase() }}
         </div>
         <div>
-          <h4>{{ chatUsuario.visibilidad === 'PUBLICO' ? chatUsuario.nombre_usuario : 'Usuario anónimo' }}</h4>
-          <p>En línea · {{ chatUsuario.nombre_categoria }}</p>
+          <h4>{{ conversacionActiva.nombre_mostrar }}</h4>
+          <p>Estado: {{ conversacionActiva.estado }}</p>
         </div>
       </div>
       <i-lucide [img]="XIcon" size="18" style="cursor:pointer;" (click)="cerrarChat()"></i-lucide>
     </div>
     
-    <div class="chat-messages">
-      <div class="chat-context">
-        <div class="context-line"></div>
-        <p>{{ chatUsuario.titulo }}</p>
-      </div>
-      
-      <!-- Mensaje simulado recibido -->
-      <div class="message received">
-        <div class="msg-avatar" [ngClass]="{'anon': chatUsuario.visibilidad === 'ANONIMO'}">
-          {{ chatUsuario.visibilidad === 'PUBLICO' ? chatUsuario.nombre_usuario.charAt(0).toUpperCase() : '?' }}
-        </div>
-        <div class="msg-content">
-          <p>Hola, me gustaría hablar sobre tu publicación. ¿Tienes tiempo?</p>
-          <span class="msg-time">Ahora</span>
+    <div class="chat-messages" style="max-height: 300px; overflow-y: auto;">
+      <div *ngIf="conversacionActiva.estado === 'PENDIENTE'" style="text-align: center; color: #888; padding: 20px;">
+        <p>Esta conversación está pendiente de ser aceptada.</p>
+        <div *ngIf="!conversacionActiva.soy_inicio" style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+          <p-button label="Aceptar" styleClass="p-button-success p-button-sm" (onClick)="aceptarConversacion(conversacionActiva)"></p-button>
+          <p-button label="Rechazar" styleClass="p-button-danger p-button-sm p-button-outlined" (onClick)="rechazarConversacion(conversacionActiva); cerrarChat()"></p-button>
         </div>
       </div>
       
+      <div class="message" *ngFor="let msg of mensajes" [ngClass]="{'sent': msg.id_usuario === userId, 'received': msg.id_usuario !== userId}">
+        <div class="msg-content" [ngStyle]="{'background': msg.id_usuario === userId ? '#b85c38' : '#f1f1f1', 'color': msg.id_usuario === userId ? 'white' : '#333', 'padding': '8px 12px', 'border-radius': '15px', 'margin-bottom': '5px', 'max-width': '80%'}">
+          <p style="margin: 0;">{{ msg.contenido }}</p>
+        </div>
+      </div>
     </div>
     
-    <div class="chat-input-area">
-      <input type="text" placeholder="Escribe un mensaje..." />
-      <button class="btn-send"><i-lucide [img]="SendIcon" size="16"></i-lucide></button>
+    <div class="chat-input-area" style="display: flex; gap: 10px; padding: 10px; border-top: 1px solid #eaeaea;">
+      <input type="text" placeholder="Escribe un mensaje..." [(ngModel)]="nuevoMensaje" (keyup.enter)="enviarMensaje()" [disabled]="conversacionActiva.estado !== 'ACEPTADA'" style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 20px; outline: none;" />
+      <button class="btn-send" (click)="enviarMensaje()" [disabled]="conversacionActiva.estado !== 'ACEPTADA'" style="background: none; border: none; cursor: pointer; color: #b85c38;"><i-lucide [img]="SendIcon" size="20"></i-lucide></button>
     </div>
   </div>
 

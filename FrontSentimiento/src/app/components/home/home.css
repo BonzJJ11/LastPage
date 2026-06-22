@@ -846,191 +846,188 @@
   justify-content: center;
   padding: 5px;
 }
-/ *   V E N T A N A   D E   C H A T   F L O T A N T E   * / 
- . c h a t - w i n d o w   { 
-     p o s i t i o n :   f i x e d ; 
-     b o t t o m :   2 0 p x ; 
-     r i g h t :   2 0 p x ; 
-     w i d t h :   3 5 0 p x ; 
-     h e i g h t :   4 5 0 p x ; 
-     b a c k g r o u n d :   w h i t e ; 
-     b o r d e r - r a d i u s :   1 6 p x ; 
-     b o x - s h a d o w :   0   5 p x   2 5 p x   r g b a ( 0 , 0 , 0 , 0 . 1 5 ) ; 
-     d i s p l a y :   f l e x ; 
-     f l e x - d i r e c t i o n :   c o l u m n ; 
-     z - i n d e x :   1 0 0 0 ; 
-     o v e r f l o w :   h i d d e n ; 
-     b o r d e r :   1 p x   s o l i d   # e a e a e a ; 
- } 
- 
- . c h a t - h e a d e r   { 
-     b a c k g r o u n d - c o l o r :   # b 8 5 c 3 8 ; 
-     c o l o r :   w h i t e ; 
-     p a d d i n g :   1 5 p x ; 
-     d i s p l a y :   f l e x ; 
-     j u s t i f y - c o n t e n t :   s p a c e - b e t w e e n ; 
-     a l i g n - i t e m s :   c e n t e r ; 
- } 
- 
- . c h a t - h e a d e r - i n f o   { 
-     d i s p l a y :   f l e x ; 
-     a l i g n - i t e m s :   c e n t e r ; 
-     g a p :   1 0 p x ; 
- } 
- 
- . c h a t - a v a t a r   { 
-     w i d t h :   3 5 p x ; 
-     h e i g h t :   3 5 p x ; 
-     b o r d e r - r a d i u s :   5 0 % ; 
-     d i s p l a y :   f l e x ; 
-     j u s t i f y - c o n t e n t :   c e n t e r ; 
-     a l i g n - i t e m s :   c e n t e r ; 
-     f o n t - w e i g h t :   b o l d ; 
-     b a c k g r o u n d - c o l o r :   # d 6 7 c 5 e ; 
- } 
- 
- . c h a t - a v a t a r . a n o n   { 
-     b a c k g r o u n d - c o l o r :   # f 5 f 5 f 5 ; 
-     c o l o r :   # 6 6 6 ; 
- } 
- 
- . c h a t - h e a d e r - i n f o   h 4   { 
-     m a r g i n :   0 ; 
-     f o n t - s i z e :   0 . 9 5 r e m ; 
- } 
- 
- . c h a t - h e a d e r - i n f o   p   { 
-     m a r g i n :   2 p x   0   0 ; 
-     f o n t - s i z e :   0 . 7 5 r e m ; 
-     o p a c i t y :   0 . 9 ; 
- } 
- 
- . c h a t - m e s s a g e s   { 
-     f l e x :   1 ; 
-     p a d d i n g :   1 5 p x ; 
-     o v e r f l o w - y :   a u t o ; 
-     b a c k g r o u n d - c o l o r :   # f a f a f a ; 
-     d i s p l a y :   f l e x ; 
-     f l e x - d i r e c t i o n :   c o l u m n ; 
-     g a p :   1 5 p x ; 
- } 
- 
- . c h a t - c o n t e x t   { 
-     d i s p l a y :   f l e x ; 
-     g a p :   1 0 p x ; 
-     m a r g i n - b o t t o m :   1 0 p x ; 
- } 
- 
- . c o n t e x t - l i n e   { 
-     w i d t h :   3 p x ; 
-     b a c k g r o u n d - c o l o r :   # b 8 5 c 3 8 ; 
-     b o r d e r - r a d i u s :   3 p x ; 
- } 
- 
- . c h a t - c o n t e x t   p   { 
-     m a r g i n :   0 ; 
-     f o n t - s i z e :   0 . 8 5 r e m ; 
-     c o l o r :   # 6 6 6 ; 
-     f o n t - s t y l e :   i t a l i c ; 
- } 
- 
- . m e s s a g e   { 
-     d i s p l a y :   f l e x ; 
-     g a p :   1 0 p x ; 
-     m a x - w i d t h :   8 5 % ; 
- } 
- 
- . m e s s a g e . r e c e i v e d   { 
-     a l i g n - s e l f :   f l e x - s t a r t ; 
- } 
- 
- . m e s s a g e . s e n t   { 
-     a l i g n - s e l f :   f l e x - e n d ; 
-     f l e x - d i r e c t i o n :   r o w - r e v e r s e ; 
- } 
- 
- . m s g - a v a t a r   { 
-     w i d t h :   2 5 p x ; 
-     h e i g h t :   2 5 p x ; 
-     b o r d e r - r a d i u s :   5 0 % ; 
-     d i s p l a y :   f l e x ; 
-     j u s t i f y - c o n t e n t :   c e n t e r ; 
-     a l i g n - i t e m s :   c e n t e r ; 
-     f o n t - w e i g h t :   b o l d ; 
-     f o n t - s i z e :   0 . 7 r e m ; 
-     b a c k g r o u n d - c o l o r :   # f 4 4 3 3 6 ; 
-     c o l o r :   w h i t e ; 
-     f l e x - s h r i n k :   0 ; 
- } 
- 
- . m s g - a v a t a r . a n o n   { 
-     b a c k g r o u n d - c o l o r :   # c c c ; 
- } 
- 
- . m s g - c o n t e n t   { 
-     p a d d i n g :   1 0 p x   1 5 p x ; 
-     b o r d e r - r a d i u s :   1 5 p x ; 
-     f o n t - s i z e :   0 . 8 5 r e m ; 
-     p o s i t i o n :   r e l a t i v e ; 
- } 
- 
- . m e s s a g e . r e c e i v e d   . m s g - c o n t e n t   { 
-     b a c k g r o u n d - c o l o r :   w h i t e ; 
-     b o r d e r :   1 p x   s o l i d   # e a e a e a ; 
-     b o r d e r - t o p - l e f t - r a d i u s :   5 p x ; 
-     c o l o r :   # 3 3 3 ; 
- } 
- 
- . m e s s a g e . s e n t   . m s g - c o n t e n t   { 
-     b a c k g r o u n d - c o l o r :   # b 8 5 c 3 8 ; 
-     c o l o r :   w h i t e ; 
-     b o r d e r - t o p - r i g h t - r a d i u s :   5 p x ; 
- } 
- 
- . m s g - c o n t e n t   p   { 
-     m a r g i n :   0   0   5 p x   0 ; 
-     l i n e - h e i g h t :   1 . 4 ; 
- } 
- 
- . m s g - t i m e   { 
-     f o n t - s i z e :   0 . 6 5 r e m ; 
-     o p a c i t y :   0 . 7 ; 
-     d i s p l a y :   b l o c k ; 
-     t e x t - a l i g n :   r i g h t ; 
- } 
- 
- . c h a t - i n p u t - a r e a   { 
-     p a d d i n g :   1 5 p x ; 
-     b a c k g r o u n d :   w h i t e ; 
-     b o r d e r - t o p :   1 p x   s o l i d   # e a e a e a ; 
-     d i s p l a y :   f l e x ; 
-     g a p :   1 0 p x ; 
-     a l i g n - i t e m s :   c e n t e r ; 
- } 
- 
- . c h a t - i n p u t - a r e a   i n p u t   { 
-     f l e x :   1 ; 
-     b o r d e r :   1 p x   s o l i d   # e a e a e a ; 
-     b o r d e r - r a d i u s :   2 0 p x ; 
-     p a d d i n g :   8 p x   1 5 p x ; 
-     f o n t - s i z e :   0 . 8 5 r e m ; 
-     o u t l i n e :   n o n e ; 
- } 
- 
- . c h a t - i n p u t - a r e a   i n p u t : f o c u s   { 
-     b o r d e r - c o l o r :   # b 8 5 c 3 8 ; 
- } 
- 
- . b t n - s e n d   { 
-     b a c k g r o u n d :   n o n e ; 
-     b o r d e r :   n o n e ; 
-     c o l o r :   # b 8 5 c 3 8 ; 
-     c u r s o r :   p o i n t e r ; 
-     d i s p l a y :   f l e x ; 
-     a l i g n - i t e m s :   c e n t e r ; 
-     j u s t i f y - c o n t e n t :   c e n t e r ; 
-     p a d d i n g :   5 p x ; 
- } 
- 
- 
- 
+/* VENTANA DE CHAT FLOTANTE */
+.chat-window {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 350px;
+  height: 450px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  overflow: hidden;
+  border: 1px solid #eaeaea;
+}
+
+.chat-header {
+  background-color: #b85c38;
+  color: white;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-header-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chat-avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  background-color: #d67c5e;
+}
+
+.chat-avatar.anon {
+  background-color: #f5f5f5;
+  color: #666;
+}
+
+.chat-header-info h4 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.chat-header-info p {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  background-color: #fafafa;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.chat-context {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.context-line {
+  width: 3px;
+  background-color: #b85c38;
+  border-radius: 3px;
+}
+
+.chat-context p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #666;
+  font-style: italic;
+}
+
+.message {
+  display: flex;
+  gap: 10px;
+  max-width: 85%;
+}
+
+.message.received {
+  align-self: flex-start;
+}
+
+.message.sent {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.msg-avatar {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 0.7rem;
+  background-color: #f44336;
+  color: white;
+  flex-shrink: 0;
+}
+
+.msg-avatar.anon {
+  background-color: #ccc;
+}
+
+.msg-content {
+  padding: 10px 15px;
+  border-radius: 15px;
+  font-size: 0.85rem;
+  position: relative;
+}
+
+.message.received .msg-content {
+  background-color: white;
+  border: 1px solid #eaeaea;
+  border-top-left-radius: 5px;
+  color: #333;
+}
+
+.message.sent .msg-content {
+  background-color: #b85c38;
+  color: white;
+  border-top-right-radius: 5px;
+}
+
+.msg-content p {
+  margin: 0 0 5px 0;
+  line-height: 1.4;
+}
+
+.msg-time {
+  font-size: 0.65rem;
+  opacity: 0.7;
+  display: block;
+  text-align: right;
+}
+
+.chat-input-area {
+  padding: 15px;
+  background: white;
+  border-top: 1px solid #eaeaea;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.chat-input-area input {
+  flex: 1;
+  border: 1px solid #eaeaea;
+  border-radius: 20px;
+  padding: 8px 15px;
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.chat-input-area input:focus {
+  border-color: #b85c38;
+}
+
+.btn-send {
+  background: none;
+  border: none;
+  color: #b85c38;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+}
