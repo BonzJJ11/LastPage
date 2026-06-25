@@ -14,6 +14,8 @@ class PublicacionSerializer(serializers.ModelSerializer):
     nombre_categoria = serializers.CharField(source='id_categoria.nombre_categoria', read_only=True)
     comentarios_count = serializers.SerializerMethodField()
     reacciones_resumen = serializers.SerializerMethodField()
+    reacciones_detalle = serializers.SerializerMethodField()
+    mi_reaccion = serializers.SerializerMethodField()
 
     class Meta:
         model = Publicacion
@@ -29,6 +31,33 @@ class PublicacionSerializer(serializers.ModelSerializer):
         from collections import Counter
         conteo = Counter(r.tipo_reaccion for r in reacciones)
         return dict(conteo)
+
+    def get_reacciones_detalle(self, obj):
+        """Retorna un dict con la lista de nombres de usuario por tipo de reacción."""
+        if not hasattr(obj, 'reaccion_set'):
+            return {}
+        resultado = {}
+        for reaccion in obj.reaccion_set.select_related('id_usuario').all():
+            tipo = reaccion.tipo_reaccion
+            nombre = reaccion.id_usuario.nombre if reaccion.id_usuario else 'Usuario'
+            if tipo not in resultado:
+                resultado[tipo] = []
+            resultado[tipo].append(nombre)
+        return resultado
+
+    def get_mi_reaccion(self, obj):
+        """Retorna el tipo de reacción del usuario actual, o None si no ha reaccionado."""
+        request = self.context.get('request')
+        id_usuario = None
+        if request:
+            id_usuario = request.query_params.get('id_usuario')
+        if not id_usuario:
+            return None
+        try:
+            reaccion = obj.reaccion_set.get(id_usuario=id_usuario)
+            return reaccion.tipo_reaccion
+        except:
+            return None
 
 
 class UsuarioSerializer(serializers.ModelSerializer):

@@ -326,7 +326,7 @@ export class Home implements OnInit, OnDestroy {
   }
 
   cargarPublicaciones() {
-    this.publicacionService.getPublicaciones().subscribe({
+    this.publicacionService.getPublicaciones(this.userId ?? undefined).subscribe({
       next: (data) => {
         this.publicaciones = data.map(pub => {
           // Mantener comentarios locales si la publicacion ya estaba abierta
@@ -341,7 +341,7 @@ export class Home implements OnInit, OnDestroy {
             visibilidadComentario: pubExistente && pubExistente.visibilidadComentario ? pubExistente.visibilidadComentario : 'PUBLICO'
           };
         });
-        this.cdr.detectChanges(); // Forzar la actualización de la vista de Angular
+        this.cdr.detectChanges();
       },
       error: (err) => console.error('Error al cargar publicaciones', err)
     });
@@ -368,7 +368,10 @@ export class Home implements OnInit, OnDestroy {
 
   cargarCategorias() {
     this.categoriaService.getCategorias().subscribe({
-      next: (data) => this.categorias = data,
+      next: (data) => {
+        this.categorias = data;
+        this.cdr.detectChanges();
+      },
       error: (err) => console.error('Error al cargar categorias', err)
     });
   }
@@ -524,12 +527,23 @@ export class Home implements OnInit, OnDestroy {
 
   reaccionar(pub: any, tipo: string) {
     if (!this.userId) return;
+    // Si el usuario ya tiene esta misma reacción activa, la quitamos
+    if (pub.mi_reaccion === tipo) {
+      this.reaccionService.quitarReaccion(this.userId, pub.id_publicacion).subscribe({
+        next: () => {
+          pub.mi_reaccion = null;
+          this.cargarPublicaciones();
+        }
+      });
+      return;
+    }
     this.reaccionService.reaccionar({
       id_usuario: this.userId,
       id_publicacion: pub.id_publicacion,
       tipo_reaccion: tipo
     }).subscribe({
       next: () => {
+        pub.mi_reaccion = tipo;
         this.cargarPublicaciones();
       }
     });
@@ -563,19 +577,40 @@ export class Home implements OnInit, OnDestroy {
   }
 
   enviarComentario(pub: any) {
-    if (!this.userId || !pub.nuevoComentario) return;
-    
+    if (!this.userId || !pub.nuevoComentario?.trim()) return;
+
+    const contenido = pub.nuevoComentario.trim();
+    const visibilidad = pub.visibilidadComentario || 'PUBLICO';
+
+    // ── Optimistic update: mostrar el comentario inmediatamente ──
+    const comentarioTemporal = {
+      contenido,
+      visibilidad,
+      nombre_usuario: visibilidad === 'ANONIMO' ? 'Anónimo' : this.activeUsername,
+      _enviando: true  // marca para saber que está en vuelo
+    };
+    if (!pub.comentariosList) pub.comentariosList = [];
+    pub.comentariosList = [...pub.comentariosList, comentarioTemporal];
+    pub.nuevoComentario = '';
+    pub.visibilidadComentario = 'PUBLICO';
+    this.cdr.detectChanges();
+
     this.comentarioService.crearComentario({
-      contenido: pub.nuevoComentario,
-      visibilidad: pub.visibilidadComentario || 'PUBLICO',
+      contenido,
+      visibilidad,
       id_usuario: this.userId,
       id_publicacion: pub.id_publicacion
     }).subscribe({
       next: () => {
-        pub.nuevoComentario = '';
-        pub.visibilidadComentario = 'PUBLICO';
+        // Reemplazar el comentario temporal con los datos reales del servidor
         this.cargarComentarios(pub);
-        this.cargarPublicaciones();
+      },
+      error: () => {
+        // Revertir si falla
+        pub.comentariosList = pub.comentariosList.filter((c: any) => !c._enviando);
+        pub.nuevoComentario = contenido;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo enviar el comentario.' });
+        this.cdr.detectChanges();
       }
     });
   }

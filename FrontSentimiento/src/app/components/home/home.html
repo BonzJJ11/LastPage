@@ -151,7 +151,7 @@
           </div>
 
           <!-- POSTS DINÁMICOS DESDE LA BASE DE DATOS -->
-          <div class="post-card" *ngFor="let pub of publicaciones">
+          <div class="post-card" *ngFor="let pub of publicaciones; trackBy: trackByPubId">
             <div class="post-header">
               
               <!-- INFORMACIÓN AUTOR (Anónimo o Público) -->
@@ -189,25 +189,88 @@
             
             <div class="post-footer">
               <div class="post-actions-left" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
-                <!-- Reacciones -->
-                <div style="display: flex; gap: 10px; align-items: center;">
-                  <button class="action-btn" (click)="opReacciones.toggle($event)">
-                    <i-lucide [img]="HeartIcon" size="18"></i-lucide> Reaccionar
-                  </button>
-                  <p-popover #opReacciones>
-                    <div style="display: flex; flex-direction: column; gap: 8px; padding: 10px;">
-                      <button class="p-button-text" style="text-align: left; background: none; border: none; cursor: pointer; padding: 5px;" (click)="reaccionar(pub, 'TE_ENTIENDO'); opReacciones.hide()">❤️ Te entiendo</button>
-                      <button class="p-button-text" style="text-align: left; background: none; border: none; cursor: pointer; padding: 5px;" (click)="reaccionar(pub, 'ME_PASO_IGUAL'); opReacciones.hide()">🤝 Me pasó igual</button>
-                      <button class="p-button-text" style="text-align: left; background: none; border: none; cursor: pointer; padding: 5px;" (click)="reaccionar(pub, 'SIGUE_ADELANTE'); opReacciones.hide()">🌱 Sigue adelante</button>
-                      <button class="p-button-text" style="text-align: left; background: none; border: none; cursor: pointer; padding: 5px;" (click)="reaccionar(pub, 'TENGO_UN_CONSEJO'); opReacciones.hide()">💡 Tengo un consejo</button>
+                <!-- Reacciones estilo Facebook -->
+                <div class="fb-reactions-wrapper">
+                  <!-- Botón principal con las opciones al hover -->
+                  <div class="fb-react-btn-container">
+                    <button class="action-btn fb-react-btn" [class.reacted]="pub.mi_reaccion">
+                      <span class="fb-react-icon" [ngSwitch]="pub.mi_reaccion">
+                        <ng-container *ngSwitchCase="'TE_ENTIENDO'">❤️</ng-container>
+                        <ng-container *ngSwitchCase="'ME_PASO_IGUAL'">🤝</ng-container>
+                        <ng-container *ngSwitchCase="'SIGUE_ADELANTE'">🌱</ng-container>
+                        <ng-container *ngSwitchCase="'TENGO_UN_CONSEJO'">💡</ng-container>
+                        <ng-container *ngSwitchDefault>
+                          <i-lucide [img]="HeartIcon" size="18"></i-lucide>
+                        </ng-container>
+                      </span>
+                      <span class="fb-react-label" [ngSwitch]="pub.mi_reaccion">
+                        <ng-container *ngSwitchCase="'TE_ENTIENDO'">Te entiendo</ng-container>
+                        <ng-container *ngSwitchCase="'ME_PASO_IGUAL'">Me pasó igual</ng-container>
+                        <ng-container *ngSwitchCase="'SIGUE_ADELANTE'">Sigue adelante</ng-container>
+                        <ng-container *ngSwitchCase="'TENGO_UN_CONSEJO'">Tengo un consejo</ng-container>
+                        <ng-container *ngSwitchDefault>Reaccionar</ng-container>
+                      </span>
+                    </button>
+
+                    <!-- Panel flotante de reacciones (aparece al hover) -->
+                    <div class="fb-reactions-picker">
+                      <button class="fb-reaction-option" title="Te entiendo" (click)="reaccionar(pub, 'TE_ENTIENDO')" [class.active]="pub.mi_reaccion === 'TE_ENTIENDO'">
+                        <span class="reaction-emoji">❤️</span>
+                        <span class="reaction-name">Te entiendo</span>
+                      </button>
+                      <button class="fb-reaction-option" title="Me pasó igual" (click)="reaccionar(pub, 'ME_PASO_IGUAL')" [class.active]="pub.mi_reaccion === 'ME_PASO_IGUAL'">
+                        <span class="reaction-emoji">🤝</span>
+                        <span class="reaction-name">Me pasó igual</span>
+                      </button>
+                      <button class="fb-reaction-option" title="Sigue adelante" (click)="reaccionar(pub, 'SIGUE_ADELANTE')" [class.active]="pub.mi_reaccion === 'SIGUE_ADELANTE'">
+                        <span class="reaction-emoji">🌱</span>
+                        <span class="reaction-name">Sigue adelante</span>
+                      </button>
+                      <button class="fb-reaction-option" title="Tengo un consejo" (click)="reaccionar(pub, 'TENGO_UN_CONSEJO')" [class.active]="pub.mi_reaccion === 'TENGO_UN_CONSEJO'">
+                        <span class="reaction-emoji">💡</span>
+                        <span class="reaction-name">Tengo un consejo</span>
+                      </button>
                     </div>
-                  </p-popover>
-                  
-                  <!-- Contadores de Reacciones -->
-                  <span class="reaction-count" *ngIf="pub.reacciones_resumen?.TE_ENTIENDO" style="font-size: 0.85rem; background: #f0f0f0; padding: 2px 6px; border-radius: 12px;">❤️ {{pub.reacciones_resumen.TE_ENTIENDO}}</span>
-                  <span class="reaction-count" *ngIf="pub.reacciones_resumen?.ME_PASO_IGUAL" style="font-size: 0.85rem; background: #f0f0f0; padding: 2px 6px; border-radius: 12px;">🤝 {{pub.reacciones_resumen.ME_PASO_IGUAL}}</span>
-                  <span class="reaction-count" *ngIf="pub.reacciones_resumen?.SIGUE_ADELANTE" style="font-size: 0.85rem; background: #f0f0f0; padding: 2px 6px; border-radius: 12px;">🌱 {{pub.reacciones_resumen.SIGUE_ADELANTE}}</span>
-                  <span class="reaction-count" *ngIf="pub.reacciones_resumen?.TENGO_UN_CONSEJO" style="font-size: 0.85rem; background: #f0f0f0; padding: 2px 6px; border-radius: 12px;">💡 {{pub.reacciones_resumen.TENGO_UN_CONSEJO}}</span>
+                  </div>
+
+                  <!-- Contadores de reacciones con tooltip de nombres -->
+                  <div class="fb-reaction-counts" *ngIf="pub.reacciones_resumen && (pub.reacciones_resumen.TE_ENTIENDO || pub.reacciones_resumen.ME_PASO_IGUAL || pub.reacciones_resumen.SIGUE_ADELANTE || pub.reacciones_resumen.TENGO_UN_CONSEJO)">
+                    <div class="fb-count-chip-group">
+                      <div class="fb-count-chip" *ngIf="pub.reacciones_resumen?.TE_ENTIENDO">
+                        <span class="chip-emoji">❤️</span>
+                        <span class="chip-num">{{ pub.reacciones_resumen.TE_ENTIENDO }}</span>
+                        <!-- Tooltip con nombres -->
+                        <div class="reaction-tooltip" *ngIf="pub.reacciones_detalle?.TE_ENTIENDO?.length">
+                          <div class="tooltip-title">❤️ Te entiendo</div>
+                          <div class="tooltip-name" *ngFor="let nombre of pub.reacciones_detalle.TE_ENTIENDO">{{ nombre }}</div>
+                        </div>
+                      </div>
+                      <div class="fb-count-chip" *ngIf="pub.reacciones_resumen?.ME_PASO_IGUAL">
+                        <span class="chip-emoji">🤝</span>
+                        <span class="chip-num">{{ pub.reacciones_resumen.ME_PASO_IGUAL }}</span>
+                        <div class="reaction-tooltip" *ngIf="pub.reacciones_detalle?.ME_PASO_IGUAL?.length">
+                          <div class="tooltip-title">🤝 Me pasó igual</div>
+                          <div class="tooltip-name" *ngFor="let nombre of pub.reacciones_detalle.ME_PASO_IGUAL">{{ nombre }}</div>
+                        </div>
+                      </div>
+                      <div class="fb-count-chip" *ngIf="pub.reacciones_resumen?.SIGUE_ADELANTE">
+                        <span class="chip-emoji">🌱</span>
+                        <span class="chip-num">{{ pub.reacciones_resumen.SIGUE_ADELANTE }}</span>
+                        <div class="reaction-tooltip" *ngIf="pub.reacciones_detalle?.SIGUE_ADELANTE?.length">
+                          <div class="tooltip-title">🌱 Sigue adelante</div>
+                          <div class="tooltip-name" *ngFor="let nombre of pub.reacciones_detalle.SIGUE_ADELANTE">{{ nombre }}</div>
+                        </div>
+                      </div>
+                      <div class="fb-count-chip" *ngIf="pub.reacciones_resumen?.TENGO_UN_CONSEJO">
+                        <span class="chip-emoji">💡</span>
+                        <span class="chip-num">{{ pub.reacciones_resumen.TENGO_UN_CONSEJO }}</span>
+                        <div class="reaction-tooltip" *ngIf="pub.reacciones_detalle?.TENGO_UN_CONSEJO?.length">
+                          <div class="tooltip-title">💡 Tengo un consejo</div>
+                          <div class="tooltip-name" *ngFor="let nombre of pub.reacciones_detalle.TENGO_UN_CONSEJO">{{ nombre }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <button class="action-btn" (click)="toggleComentarios(pub)">
@@ -222,31 +285,62 @@
             </div>
 
             <!-- SECCIÓN DE COMENTARIOS -->
-            <div class="comments-section" *ngIf="pub.mostrarComentarios" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+            <div class="comments-section" *ngIf="pub.mostrarComentarios">
+              <!-- Lista de comentarios -->
               <div class="comment-list">
-                <div class="comment-item" *ngFor="let com of pub.comentariosList" style="margin-bottom: 10px; background: #f9f9f9; padding: 10px; border-radius: 8px;">
-                  <div style="font-weight: 600; font-size: 0.9rem;">
-                    {{ com.nombre_usuario }} <span *ngIf="com.visibilidad === 'ANONIMO'" style="font-size: 0.8rem; background: #e0e0e0; padding: 2px 6px; border-radius: 4px; color: #555;">Anónimo</span>
+                <div class="comment-item" *ngFor="let com of pub.comentariosList">
+                  <!-- Avatar del comentario -->
+                  <div class="comment-avatar" [class.anon]="com.visibilidad === 'ANONIMO'">
+                    {{ com.visibilidad === 'ANONIMO' ? '?' : (com.nombre_usuario ? com.nombre_usuario.charAt(0).toUpperCase() : 'U') }}
                   </div>
-                  <div style="font-size: 0.95rem; color: #444; margin-top: 5px;">{{ com.contenido }}</div>
+                  <div class="comment-body">
+                    <div class="comment-author">
+                      {{ com.visibilidad === 'ANONIMO' ? 'Anónimo' : com.nombre_usuario }}
+                      <span class="comment-anon-tag" *ngIf="com.visibilidad === 'ANONIMO'">anónimo</span>
+                    </div>
+                    <div class="comment-text">{{ com.contenido }}</div>
+                  </div>
+                </div>
+                <!-- Estado vacío -->
+                <div class="comment-empty" *ngIf="pub.comentariosList?.length === 0">
+                  Sé el primero en comentar ✨
                 </div>
               </div>
-              
-              <div class="add-comment" style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
-                <input type="text" pInputText placeholder="Escribe un comentario..." [(ngModel)]="pub.nuevoComentario" style="flex: 1;" (keyup.enter)="enviarComentario(pub)">
-                
-                <div (click)="pub.visibilidadComentario = (pub.visibilidadComentario === 'ANONIMO' ? 'PUBLICO' : 'ANONIMO')" 
-                     style="cursor: pointer; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; user-select: none;" 
-                     [ngStyle]="{'background-color': pub.visibilidadComentario === 'ANONIMO' ? '#f5ebff' : '#e0f2f1', 'color': pub.visibilidadComentario === 'ANONIMO' ? '#8b5cf6' : '#009688'}">
-                  <i-lucide [img]="pub.visibilidadComentario === 'ANONIMO' ? LockIcon : GlobeIcon" size="14" style="vertical-align: middle;"></i-lucide>
-                  {{ pub.visibilidadComentario === 'ANONIMO' ? 'Anónimo' : 'Público' }}
+
+              <!-- Input de nuevo comentario -->
+              <div class="comment-input-row">
+                <div class="comment-input-wrapper">
+                  <input
+                    type="text"
+                    class="comment-input"
+                    placeholder="Escribe un comentario..."
+                    [(ngModel)]="pub.nuevoComentario"
+                    (keyup.enter)="enviarComentario(pub)"
+                  />
+                  <!-- Toggle visibilidad dentro del input -->
+                  <button
+                    class="comment-vis-toggle"
+                    (click)="pub.visibilidadComentario = (pub.visibilidadComentario === 'ANONIMO' ? 'PUBLICO' : 'ANONIMO')"
+                    [class.anonimo]="pub.visibilidadComentario === 'ANONIMO'"
+                    title="{{ pub.visibilidadComentario === 'ANONIMO' ? 'Anónimo' : 'Público' }}"
+                  >
+                    <i-lucide [img]="pub.visibilidadComentario === 'ANONIMO' ? LockIcon : GlobeIcon" size="14"></i-lucide>
+                  </button>
+                  <!-- Botón enviar -->
+                  <button
+                    class="comment-send-btn"
+                    (click)="enviarComentario(pub)"
+                    [disabled]="!pub.nuevoComentario"
+                    title="Enviar comentario"
+                  >
+                    <i-lucide [img]="SendIcon" size="16"></i-lucide>
+                  </button>
                 </div>
-                
-                <p-button icon="pi pi-send" (onClick)="enviarComentario(pub)" styleClass="p-button-rounded"></p-button>
               </div>
             </div>
           </div>
         </ng-container>
+
 
         <!-- ==================== GUARDADOS TAB ==================== -->
         <ng-container *ngIf="currentTab === 'guardados'">

@@ -23,8 +23,9 @@ export class PublicacionService {
 
   constructor(private http: HttpClient) {}
 
-  getPublicaciones(): Observable<Publicacion[]> {
-    return this.http.get<Publicacion[]>(this.apiUrl);
+  getPublicaciones(idUsuario?: number): Observable<Publicacion[]> {
+    const url = idUsuario ? `${this.apiUrl}?id_usuario=${idUsuario}` : this.apiUrl;
+    return this.http.get<Publicacion[]>(url);
   }
 
   createPublicacion(publicacion: Publicacion): Observable<Publicacion> {
