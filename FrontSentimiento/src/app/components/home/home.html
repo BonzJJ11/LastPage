@@ -193,7 +193,12 @@
                 <div class="fb-reactions-wrapper">
                   <!-- Botón principal con las opciones al hover -->
                   <div class="fb-react-btn-container">
-                    <button class="action-btn fb-react-btn" [class.reacted]="pub.mi_reaccion">
+                    <button
+                      class="action-btn fb-react-btn"
+                      [class.reacted]="pub.mi_reaccion"
+                      (dblclick)="pub.mi_reaccion && reaccionar(pub, pub.mi_reaccion)"
+                      title="{{ pub.mi_reaccion ? 'Doble clic para quitar reacción' : 'Reaccionar' }}"
+                    >
                       <span class="fb-react-icon" [ngSwitch]="pub.mi_reaccion">
                         <ng-container *ngSwitchCase="'TE_ENTIENDO'">❤️</ng-container>
                         <ng-container *ngSwitchCase="'ME_PASO_IGUAL'">🤝</ng-container>

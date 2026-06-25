@@ -1406,3 +1406,31 @@
   color: #aaa;
   cursor: not-allowed;
 }
+
+/* ===== FIX: evitar que el picker desaparezca al mover el mouse ===== */
+
+/* Puente invisible debajo del picker que mantiene el hover activo */
+.fb-reactions-picker::before {
+  content: '';
+  position: absolute;
+  top: 100%;        /* justo debajo del picker */
+  left: -10px;
+  right: -10px;
+  height: 20px;     /* altura del espacio entre botón y picker */
+  background: transparent;
+}
+
+/* Pequeño delay al OCULTAR (da tiempo al mouse de llegar al picker) */
+.fb-react-btn-container .fb-reactions-picker {
+  transition: opacity 0.18s ease 0s, transform 0.18s ease 0s;
+}
+
+/* Cuando el contenedor pierde hover, espera 250ms antes de ocultar */
+.fb-react-btn-container:not(:hover) .fb-reactions-picker {
+  transition-delay: 0.25s;
+}
+
+/* Reducir el gap entre botón y picker */
+.fb-reactions-picker {
+  bottom: calc(100% + 4px);  /* antes era 8px, lo reducimos */
+}
