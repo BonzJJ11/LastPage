@@ -560,6 +560,15 @@ export class Home implements OnInit, OnDestroy {
     });
   }
 
+  // ── trackBy para ngFor: evita que Angular destruya el DOM al refrescar ──
+  trackByPubId(_index: number, pub: any): number {
+    return pub.id_publicacion;
+  }
+
+  trackByComId(_index: number, com: any): number {
+    return com.id_comentario ?? Math.random();
+  }
+
   toggleComentarios(pub: any) {
     pub.mostrarComentarios = !pub.mostrarComentarios;
     if (pub.mostrarComentarios) {

@@ -288,7 +288,7 @@
             <div class="comments-section" *ngIf="pub.mostrarComentarios">
               <!-- Lista de comentarios -->
               <div class="comment-list">
-                <div class="comment-item" *ngFor="let com of pub.comentariosList">
+                <div class="comment-item" *ngFor="let com of pub.comentariosList; trackBy: trackByComId">
                   <!-- Avatar del comentario -->
                   <div class="comment-avatar" [class.anon]="com.visibilidad === 'ANONIMO'">
                     {{ com.visibilidad === 'ANONIMO' ? '?' : (com.nombre_usuario ? com.nombre_usuario.charAt(0).toUpperCase() : 'U') }}
