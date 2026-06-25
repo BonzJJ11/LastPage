@@ -3,7 +3,7 @@
   flex-direction: column;
   height: 100vh;
   background-color: #fcfcfc;
-  font-family: 'Inter', sans-serif; /* Aseg煤rate de tener Inter o la fuente de tu proyecto */
+  font-family: 'Inter', sans-serif; /* Aseg脙潞rate de tener Inter o la fuente de tu proyecto */
 }
 
 /* NAVBAR */
@@ -1238,7 +1238,7 @@
   text-overflow: ellipsis;
 }
 
-/* ===== SECCI覰 DE COMENTARIOS (REDISE袿) ===== */
+/* ===== SECCI脫N DE COMENTARIOS (REDISE脩O) ===== */
 .comments-section {
   margin-top: 14px;
   border-top: 1px solid #f0f0f0;
@@ -1350,7 +1350,7 @@
   color: #bbb;
 }
 
-/* Bot髇 toggle visibilidad dentro del input */
+/* Bot贸n toggle visibilidad dentro del input */
 .comment-vis-toggle {
   flex-shrink: 0;
   display: flex;
@@ -1379,7 +1379,7 @@
   background: #f5ebff;
 }
 
-/* Bot髇 de enviar (flecha) */
+/* Bot贸n de enviar (flecha) */
 .comment-send-btn {
   flex-shrink: 0;
   display: flex;
@@ -1416,11 +1416,11 @@
   top: 100%;        /* justo debajo del picker */
   left: -10px;
   right: -10px;
-  height: 20px;     /* altura del espacio entre bot髇 y picker */
+  height: 20px;     /* altura del espacio entre bot贸n y picker */
   background: transparent;
 }
 
-/* Peque駉 delay al OCULTAR (da tiempo al mouse de llegar al picker) */
+/* Peque帽o delay al OCULTAR (da tiempo al mouse de llegar al picker) */
 .fb-react-btn-container .fb-reactions-picker {
   transition: opacity 0.18s ease 0s, transform 0.18s ease 0s;
 }
@@ -1430,7 +1430,7 @@
   transition-delay: 0.25s;
 }
 
-/* Reducir el gap entre bot髇 y picker */
+/* Reducir el gap entre bot贸n y picker */
 .fb-reactions-picker {
   bottom: calc(100% + 4px);  /* antes era 8px, lo reducimos */
 }

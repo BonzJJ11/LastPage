@@ -11,6 +11,8 @@ import { BadgeModule } from 'primeng/badge';
 import { PopoverModule } from 'primeng/popover';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
+import { DrawerModule } from 'primeng/drawer';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { LucideAngularModule, Home as HomeIconLucide, Compass, Users, Bookmark, MessageSquare, Bell, Search, PenTool, ChevronDown, User, Settings, LogOut, Sun, Share2, MoreHorizontal, Image as ImageIcon, Tag, Smile, Lock, Heart, ShieldAlert, Globe, Trash, X, Send, MessageCircle } from 'lucide-angular';
 import { CategoriaService, Categoria } from '../../core/servicios/categoria.service';
@@ -37,6 +39,8 @@ import { NotificacionService } from '../../core/services/notificacion.service';
     PopoverModule,
     TableModule,
     ToastModule,
+    DrawerModule,
+    TooltipModule,
     LucideAngularModule
   ],
   providers: [MessageService],
@@ -107,9 +111,12 @@ export class Home implements OnInit, OnDestroy {
 
   // Variables para vistas internas (tabs)
   currentTab = 'home'; // 'home', 'guardados', 'mensajes', 'notificaciones'
+  menuVisible = true;
+  mobileMenuVisible = false;
 
   // Variables para Guardados
   publicacionesGuardadas: any[] = [];
+  guardadosNoVistosIds = new Set<number>();
 
   // Variables para Notificaciones
   notificaciones: any[] = [];
@@ -149,6 +156,7 @@ export class Home implements OnInit, OnDestroy {
       const idUser = localStorage.getItem('user_id');
       if (idUser) {
         this.userId = parseInt(idUser);
+        this.cargarGuardadosNoVistos();
       }
     }
     
@@ -184,7 +192,63 @@ export class Home implements OnInit, OnDestroy {
     this.currentTab = tab;
     this.chatActivo = false;
     this.conversacionActiva = null;
+    this.cerrarMenuMovil();
+    if (tab === 'guardados') {
+      this.limpiarGuardadosNoVistos();
+    }
     this.cargarDatosGenerales();
+  }
+
+  toggleMenu() {
+    if (typeof window !== 'undefined' && window.innerWidth <= 900) {
+      this.mobileMenuVisible = true;
+      return;
+    }
+    this.menuVisible = !this.menuVisible;
+  }
+
+  cerrarMenuMovil() {
+    this.mobileMenuVisible = false;
+  }
+
+  get guardadosNoVistos(): number {
+    return this.guardadosNoVistosIds.size;
+  }
+
+  private get guardadosStorageKey(): string {
+    return `guardados_no_vistos_${this.userId ?? 'anon'}`;
+  }
+
+  cargarGuardadosNoVistos() {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    try {
+      const raw = localStorage.getItem(this.guardadosStorageKey);
+      const ids = raw ? JSON.parse(raw) : [];
+      this.guardadosNoVistosIds = new Set(ids.map((id: any) => Number(id)).filter(Boolean));
+    } catch {
+      this.guardadosNoVistosIds.clear();
+    }
+  }
+
+  guardarGuardadosNoVistos() {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    localStorage.setItem(this.guardadosStorageKey, JSON.stringify([...this.guardadosNoVistosIds]));
+  }
+
+  agregarGuardadoNoVisto(idPublicacion: number) {
+    if (this.currentTab === 'guardados') return;
+    this.guardadosNoVistosIds.add(idPublicacion);
+    this.guardarGuardadosNoVistos();
+  }
+
+  quitarGuardadoNoVisto(idPublicacion: number) {
+    this.guardadosNoVistosIds.delete(idPublicacion);
+    this.guardarGuardadosNoVistos();
+  }
+
+  limpiarGuardadosNoVistos() {
+    this.guardadosNoVistosIds.clear();
+    this.guardarGuardadosNoVistos();
   }
 
   cargarNotificaciones() {
@@ -224,11 +288,19 @@ export class Home implements OnInit, OnDestroy {
     });
   }
 
-  quitarGuardado(idGuardado: number) {
+  quitarGuardado(idGuardado: number, idPublicacion?: number) {
     this.guardadoService.quitarGuardado(idGuardado).subscribe({
       next: () => {
         this.messageService.add({severity:'success', summary:'Eliminado', detail:'Publicación quitada de guardados.'});
+        if (idPublicacion) {
+          this.quitarGuardadoNoVisto(idPublicacion);
+          this.publicaciones = this.publicaciones.map(pub => pub.id_publicacion === idPublicacion ? { ...pub, mi_guardado: false, id_guardado: null } : pub);
+          this.publicacionesGuardadas = this.publicacionesGuardadas.filter(pub => pub.id_publicacion !== idPublicacion);
+        }
         this.cargarGuardados();
+        if (this.currentTab === 'home') {
+          this.cargarPublicaciones();
+        }
       }
     });
   }
@@ -549,13 +621,24 @@ export class Home implements OnInit, OnDestroy {
     });
   }
 
-  guardarPublicacion(pub: any) {
+  toggleGuardarPublicacion(pub: any) {
+    if (pub.mi_guardado && pub.id_guardado) {
+      this.quitarGuardado(pub.id_guardado, pub.id_publicacion);
+      return;
+    }
+
     if (!this.userId) return;
     this.guardadoService.guardarPublicacion({
       id_usuario: this.userId,
       id_publicacion: pub.id_publicacion
     }).subscribe({
-      next: () => this.messageService.add({severity:'success', summary:'Guardado', detail:'Publicación guardada.'}),
+      next: (guardado) => {
+        pub.mi_guardado = true;
+        pub.id_guardado = guardado?.id_guardado ?? pub.id_guardado;
+        this.agregarGuardadoNoVisto(pub.id_publicacion);
+        this.messageService.add({severity:'success', summary:'Guardado', detail:'Publicación guardada.'});
+        this.cargarGuardados();
+      },
       error: () => this.messageService.add({severity:'warn', summary:'Aviso', detail:'Ya tienes esta publicación guardada o hubo un error.'})
     });
   }

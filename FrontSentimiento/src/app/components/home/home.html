@@ -10,6 +10,8 @@
       Página Pasada
     </div>
 
+    <p-button icon="pi pi-bars" styleClass="btn-menu-toggle p-button-text" (onClick)="toggleMenu()" pTooltip="Menú"></p-button>
+
     <div class="nav-links">
       <div class="nav-link active">
         <i-lucide [img]="HomeIcon" size="18"></i-lucide> Inicio
@@ -69,8 +71,38 @@
     </div>
   </nav>
 
+  <p-drawer [(visible)]="mobileMenuVisible" header="Menú" position="left" styleClass="mobile-menu-drawer">
+    <div class="menu-section">
+      <div class="menu-title">Principal</div>
+      <div class="menu-item" [class.active]="currentTab === 'home'" (click)="cambiarTab('home')">
+        <div class="menu-item-left"><i-lucide [img]="HomeIcon" size="18"></i-lucide> Inicio</div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-item-left"><i-lucide [img]="CompassIcon" size="18"></i-lucide> Explorar</div>
+      </div>
+      <div class="menu-item" [class.active]="currentTab === 'guardados'" (click)="cambiarTab('guardados')">
+        <div class="menu-item-left"><i-lucide [img]="BookmarkIcon" size="18"></i-lucide> Guardados</div>
+        <div class="badge" *ngIf="guardadosNoVistos > 0">{{ guardadosNoVistos }}</div>
+      </div>
+      <div class="menu-item" [class.active]="currentTab === 'mensajes'" (click)="cambiarTab('mensajes')">
+        <div class="menu-item-left"><i-lucide [img]="MessageSquareIcon" size="18"></i-lucide> Mensajes</div>
+      </div>
+      <div class="menu-item" [class.active]="currentTab === 'notificaciones'" (click)="cambiarTab('notificaciones')">
+        <div class="menu-item-left"><i-lucide [img]="BellIcon" size="18"></i-lucide> Notificaciones</div>
+        <div class="badge" *ngIf="notificacionesNoLeidas > 0">{{ notificacionesNoLeidas }}</div>
+      </div>
+    </div>
+
+    <div class="menu-section">
+      <div class="menu-title">Categorías</div>
+      <div class="menu-item"><div class="menu-item-left"><i-lucide [img]="HeartIcon" size="16" style="color: #f44336;"></i-lucide> Relaciones</div></div>
+      <div class="menu-item"><div class="menu-item-left"><i-lucide [img]="CompassIcon" size="16" style="color: #ff9800;"></i-lucide> Superación</div></div>
+      <div class="menu-item"><div class="menu-item-left"><i-lucide [img]="UsersIcon" size="16" style="color: #2196f3;"></i-lucide> Familia</div></div>
+    </div>
+  </p-drawer>
+
   <!-- MAIN CONTENT -->
-  <div class="main-content">
+  <div class="main-content" [class.menu-collapsed]="!menuVisible">
     
     <!-- LEFT SIDEBAR -->
     <aside class="sidebar-left">
@@ -84,7 +116,7 @@
         </div>
         <div class="menu-item" [class.active]="currentTab === 'guardados'" (click)="cambiarTab('guardados')">
           <div class="menu-item-left"><i-lucide [img]="BookmarkIcon" size="18"></i-lucide> Guardados</div>
-          <div class="badge" *ngIf="publicacionesGuardadas.length > 0">{{ publicacionesGuardadas.length }}</div>
+          <div class="badge" *ngIf="guardadosNoVistos > 0">{{ guardadosNoVistos }}</div>
         </div>
         <div class="menu-item" [class.active]="currentTab === 'mensajes'" (click)="cambiarTab('mensajes')">
           <div class="menu-item-left"><i-lucide [img]="MessageSquareIcon" size="18"></i-lucide> Mensajes</div>
@@ -285,7 +317,14 @@
               </div>
               <div class="post-actions-right">
                 <button class="action-btn"><i-lucide [img]="ShareIcon" size="18"></i-lucide></button>
-                <button class="action-btn" (click)="guardarPublicacion(pub)"><i-lucide [img]="BookmarkIcon" size="18"></i-lucide></button>
+                <button
+                  class="action-btn save-btn"
+                  [class.saved]="pub.mi_guardado"
+                  (click)="toggleGuardarPublicacion(pub)"
+                  [pTooltip]="pub.mi_guardado ? 'Quitar de guardados' : 'Guardar'"
+                >
+                  <i class="pi" [ngClass]="pub.mi_guardado ? 'pi-bookmark-fill' : 'pi-bookmark'"></i>
+                </button>
               </div>
             </div>
 
@@ -370,7 +409,7 @@
               </div>
 
               <div>
-                <button pButton icon="pi pi-bookmark-fill" class="p-button-rounded p-button-text p-button-danger" (click)="quitarGuardado(pub.id_guardado)" pTooltip="Quitar"></button>
+                <button pButton icon="pi pi-bookmark-fill" class="p-button-rounded p-button-text p-button-danger" (click)="quitarGuardado(pub.id_guardado, pub.id_publicacion)" pTooltip="Quitar de guardados"></button>
               </div>
             </div>
             
@@ -663,4 +702,3 @@
   </div>
 
 </div>
-

@@ -16,6 +16,8 @@ class PublicacionSerializer(serializers.ModelSerializer):
     reacciones_resumen = serializers.SerializerMethodField()
     reacciones_detalle = serializers.SerializerMethodField()
     mi_reaccion = serializers.SerializerMethodField()
+    mi_guardado = serializers.SerializerMethodField()
+    id_guardado = serializers.SerializerMethodField()
 
     class Meta:
         model = Publicacion
@@ -58,6 +60,25 @@ class PublicacionSerializer(serializers.ModelSerializer):
             return reaccion.tipo_reaccion
         except:
             return None
+
+    def get_guardado_usuario(self, obj):
+        request = self.context.get('request')
+        id_usuario = None
+        if request:
+            id_usuario = request.query_params.get('id_usuario')
+        if not id_usuario:
+            return None
+        try:
+            return obj.guardado_set.get(id_usuario=id_usuario)
+        except:
+            return None
+
+    def get_mi_guardado(self, obj):
+        return self.get_guardado_usuario(obj) is not None
+
+    def get_id_guardado(self, obj):
+        guardado = self.get_guardado_usuario(obj)
+        return guardado.id_guardado if guardado else None
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
@@ -166,4 +187,3 @@ class NotificacionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notificacion
         fields = '__all__'
-
