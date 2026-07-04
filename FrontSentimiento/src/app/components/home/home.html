@@ -40,7 +40,47 @@
         </ng-template>
       </p-button>
       
-      <i-lucide [img]="BellIcon" size="20" style="color: #666; cursor: pointer;"></i-lucide>
+      <div class="notif-trigger" style="position: relative; cursor: pointer; display: flex; align-items: center;" (click)="opNotif.toggle($event)" pTooltip="Notificaciones">
+        <i-lucide [img]="BellIcon" size="20" style="color: #666;"></i-lucide>
+        <div class="badge" style="position: absolute; top: -8px; right: -8px; width: 16px; height: 16px; font-size: 0.65rem;" *ngIf="notificacionesNoLeidas > 0">{{ notificacionesNoLeidas }}</div>
+      </div>
+
+      <p-popover #opNotif [style]="{width: '320px', padding: '0'}">
+        <div style="padding: 12px 15px; border-bottom: 1px solid #eaeaea; display: flex; justify-content: space-between; align-items: center; background-color: #fafafa; border-top-left-radius: 8px; border-top-right-radius: 8px;">
+          <span style="font-weight: 600; color: #333; font-size: 0.95rem;">Notificaciones</span>
+          <span style="font-size: 0.75rem; color: #b85c38; cursor: pointer; font-weight: 500;" (click)="cambiarTab('notificaciones'); opNotif.hide()">Ver todas</span>
+        </div>
+        <div style="max-height: 350px; overflow-y: auto;">
+          <div *ngIf="notificaciones.length === 0" style="padding: 20px; text-align: center; color: #888; font-size: 0.85rem;">
+            No tienes notificaciones recientes.
+          </div>
+          <!-- Loop de notificaciones (las 5 más recientes) -->
+          <div *ngFor="let notif of notificaciones.slice(0, 5)" 
+               (click)="manejarClickNotificacion(notif, opNotif)" 
+               style="padding: 12px 15px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; gap: 10px; transition: background 0.2s;"
+               [ngStyle]="{'background-color': notif.leida ? '#fff' : '#fffaf8'}"
+               onmouseover="this.style.backgroundColor='#f9f9f9'"
+               onmouseout="this.style.backgroundColor=notif.leida ? '#fff' : '#fffaf8'">
+            
+            <div style="flex-shrink: 0; margin-top: 3px;">
+              <i-lucide [img]="BellIcon" size="16" [ngStyle]="{'color': notif.leida ? '#aaa' : '#b85c38'}"></i-lucide>
+            </div>
+            <div style="flex: 1;">
+              <div style="font-weight: 600; font-size: 0.85rem; color: #333; margin-bottom: 2px; line-height: 1.2;">
+                {{ notif.titulo }}
+              </div>
+              <div style="font-size: 0.8rem; color: #666; margin-bottom: 4px; line-height: 1.3;">
+                {{ notif.mensaje }}
+              </div>
+              <div style="font-size: 0.7rem; color: #aaa;">
+                {{ calcularTiempo(notif.fecha_creacion) }}
+              </div>
+            </div>
+            <!-- Punto indicador de no leída -->
+            <div *ngIf="!notif.leida" style="width: 8px; height: 8px; border-radius: 50%; background-color: #b85c38; flex-shrink: 0; margin-top: 6px;"></div>
+          </div>
+        </div>
+      </p-popover>
       
       <div class="profile-trigger" (click)="op.toggle($event)">
         <div class="avatar" style="background-color: #d67c5e;">{{ activeUsername.charAt(0).toUpperCase() }}</div>
@@ -156,7 +196,7 @@
           </div>
 
           <!-- POSTS DINÁMICOS DESDE LA BASE DE DATOS -->
-          <div class="post-card" *ngFor="let pub of publicaciones; trackBy: trackByPubId">
+          <div class="post-card" *ngFor="let pub of publicaciones; trackBy: trackByPubId" [id]="'pub-' + pub.id_publicacion">
             <div class="post-header">
               
               <!-- INFORMACIÓN AUTOR (Anónimo o Público) -->
@@ -441,7 +481,7 @@
                  style="background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 10px; border: 1px solid #eaeaea; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s;"
                  [ngStyle]="{'border-left': notif.leida ? '1px solid #eaeaea' : '4px solid #b85c38', 'background': notif.leida ? '#fff' : '#fffaf8'}">
               
-              <div style="flex: 1; cursor: pointer;" (click)="marcarNotificacionLeida(notif)">
+              <div style="flex: 1; cursor: pointer;" (click)="manejarClickNotificacion(notif)">
                 <h4 style="margin: 0 0 5px 0; color: #333; display: flex; align-items: center; gap: 8px;">
                   <i-lucide [img]="BellIcon" size="16" [ngStyle]="{'color': notif.leida ? '#aaa' : '#b85c38'}"></i-lucide> 
                   {{ notif.titulo }}

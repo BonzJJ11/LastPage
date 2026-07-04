@@ -264,8 +264,105 @@ export class Home implements OnInit, OnDestroy {
       next: () => {
         notif.leida = true;
         this.notificacionesNoLeidas--;
+        this.cdr.detectChanges();
       }
     });
+  }
+
+  manejarClickNotificacion(notif: any, opNotif: any | null = null) {
+    this.marcarNotificacionLeida(notif);
+    
+    if (opNotif) {
+      opNotif.hide();
+    }
+    this.menuVisible = false; // cerrar el menú principal si está abierto
+
+    const titulo = notif.titulo.toLowerCase();
+    
+    // Si es un comentario o reacción, buscar la publicación
+    if (titulo.includes('comentario') || titulo.includes('reacción')) {
+      this.cambiarTab('home');
+      
+      // Parsear el título de la publicación del mensaje. 
+      // Formato: "Han comentado en tu publicación: {titulo}" o "Alguien reaccionó a tu publicación: {titulo}"
+      const parts = notif.mensaje.split(': ');
+      if (parts.length > 1) {
+        const tituloPub = parts.slice(1).join(': ').trim();
+        // Buscar la publicación en el array
+        const pub = this.publicaciones.find(p => p.titulo === tituloPub);
+        
+        if (pub) {
+          // Si es comentario, abrir la sección de comentarios
+          if (titulo.includes('comentario')) {
+            pub.mostrarComentarios = true;
+            this.cargarComentarios(pub);
+          }
+          
+          // Scroll hacia la publicación
+          setTimeout(() => {
+            const el = document.getElementById('pub-' + pub.id_publicacion);
+            if (el) {
+              // Ajustamos la posición para que no quede tapada por el navbar fijo
+              const y = el.getBoundingClientRect().top + window.scrollY - 80;
+              window.scrollTo({ top: y, behavior: 'smooth' });
+              
+              // Añadir un efecto visual temporal para destacar
+              const originalShadow = el.style.boxShadow;
+              const originalBorder = el.style.borderColor;
+              
+              el.style.transition = 'all 0.5s ease';
+              el.style.borderColor = '#b85c38';
+              el.style.boxShadow = '0 0 15px rgba(184, 92, 56, 0.4)';
+              
+              setTimeout(() => {
+                el.style.borderColor = originalBorder;
+                el.style.boxShadow = originalShadow;
+              }, 2500);
+            }
+          }, 300);
+        }
+      }
+    } 
+    // Si es una solicitud de mensaje o un mensaje nuevo
+    else if (titulo.includes('solicitud') || titulo.includes('mensaje')) {
+      this.cambiarTab('mensajes');
+      
+      // Intentar interactuar automáticamente con la conversación
+      setTimeout(() => {
+        // Si es una solicitud de alguien más hacia nosotros
+        if (titulo.includes('solicitud') && titulo.includes('nueva')) {
+          const index = this.conversaciones.findIndex(c => !c.soy_inicio && c.estado === 'PENDIENTE');
+          if (index !== -1) {
+            const cards = document.querySelectorAll('.conversacion-list .post-card');
+            if (cards.length > index) {
+              const el = cards[index] as HTMLElement;
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              
+              const originalBg = el.style.backgroundColor;
+              el.style.transition = 'all 0.5s ease';
+              el.style.backgroundColor = '#e3f2fd';
+              
+              setTimeout(() => {
+                el.style.backgroundColor = originalBg || '#fff';
+              }, 2000);
+            }
+          }
+        } 
+        // Si es un mensaje nuevo o una solicitud que ya aceptamos, abrir el chat
+        else if (titulo.includes('mensaje') || titulo.includes('aceptada')) {
+          // Buscamos la primera conversación activa (aceptada)
+          // Como la notificación no trae ID, usamos la más probable
+          const convActiva = this.conversaciones.find(c => c.estado === 'ACEPTADA');
+          if (convActiva) {
+            this.abrirChat(convActiva);
+          }
+        }
+      }, 300);
+    }
+    // Por defecto, ir a la pestaña de notificaciones
+    else {
+      this.cambiarTab('notificaciones');
+    }
   }
 
   cargarGuardados() {
