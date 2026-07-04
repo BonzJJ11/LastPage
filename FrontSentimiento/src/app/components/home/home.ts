@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -48,6 +48,8 @@ import { NotificacionService } from '../../core/services/notificacion.service';
   styleUrl: './home.css'
 })
 export class Home implements OnInit, OnDestroy {
+  @ViewChild('chatContainer') private chatContainer!: ElementRef;
+  
   displayEscribirDialog = false;
   tituloHistoria = '';
   contenidoHistoria = '';
@@ -111,7 +113,7 @@ export class Home implements OnInit, OnDestroy {
   private refreshInterval: any;
 
   // Variables para vistas internas (tabs)
-  currentTab = 'home'; // 'home', 'guardados', 'mensajes', 'notificaciones'
+  currentTab = 'home'; // 'home', 'guardados', 'solicitudes', 'notificaciones'
   menuVisible = false;
 
   // Variables para Guardados
@@ -180,12 +182,20 @@ export class Home implements OnInit, OnDestroy {
   cargarDatosGenerales() {
     if (this.currentTab === 'home') this.cargarPublicaciones();
     if (this.currentTab === 'guardados') this.cargarGuardados();
-    if (this.currentTab === 'mensajes' && !this.chatActivo) this.cargarConversaciones();
-    if (this.currentTab === 'mensajes' && this.chatActivo && this.conversacionActiva) this.cargarMensajes(this.conversacionActiva.id_conversacion);
+    if (this.currentTab === 'solicitudes' && !this.chatActivo) this.cargarConversaciones();
+    if (this.currentTab === 'solicitudes' && this.chatActivo && this.conversacionActiva) this.cargarMensajes(this.conversacionActiva.id_conversacion);
     
     if (this.userId) {
       this.cargarNotificaciones();
     }
+  }
+
+  get conversacionesPendientes() {
+    return this.conversaciones.filter(c => c.estado === 'PENDIENTE');
+  }
+
+  get conversacionesAceptadas() {
+    return this.conversaciones.filter(c => c.estado === 'ACEPTADA');
   }
 
   cambiarTab(tab: string) {
@@ -325,13 +335,13 @@ export class Home implements OnInit, OnDestroy {
     } 
     // Si es una solicitud de mensaje o un mensaje nuevo
     else if (titulo.includes('solicitud') || titulo.includes('mensaje')) {
-      this.cambiarTab('mensajes');
+      this.cambiarTab('solicitudes');
       
       // Intentar interactuar automáticamente con la conversación
       setTimeout(() => {
         // Si es una solicitud de alguien más hacia nosotros
         if (titulo.includes('solicitud') && titulo.includes('nueva')) {
-          const index = this.conversaciones.findIndex(c => !c.soy_inicio && c.estado === 'PENDIENTE');
+          const index = this.conversacionesPendientes.findIndex(c => !c.soy_inicio);
           if (index !== -1) {
             const cards = document.querySelectorAll('.conversacion-list .post-card');
             if (cards.length > index) {
@@ -350,9 +360,7 @@ export class Home implements OnInit, OnDestroy {
         } 
         // Si es un mensaje nuevo o una solicitud que ya aceptamos, abrir el chat
         else if (titulo.includes('mensaje') || titulo.includes('aceptada')) {
-          // Buscamos la primera conversación activa (aceptada)
-          // Como la notificación no trae ID, usamos la más probable
-          const convActiva = this.conversaciones.find(c => c.estado === 'ACEPTADA');
+          const convActiva = this.conversacionesAceptadas.length > 0 ? this.conversacionesAceptadas[0] : null;
           if (convActiva) {
             this.abrirChat(convActiva);
           }
@@ -444,26 +452,64 @@ export class Home implements OnInit, OnDestroy {
     });
   }
 
-  abrirChat(conv: any) {
-    // Si viene desde "Mensaje" en una publicación, se simula o crea
-    if (!conv.id_conversacion) {
+  abrirChat(obj: any) {
+    // Si viene desde "Mensaje" en una publicación o comentario (no tiene id_conversacion)
+    if (!obj.id_conversacion) {
       if (!this.userId) return;
+      
+      const targetUserId = obj.id_usuario;
+      
+      // 1. Buscar si ya existe una conversación con este usuario
+      const chatExistente = this.conversaciones.find(c => 
+        (c.id_usuario_inicio === this.userId && c.id_usuario_destino === targetUserId) ||
+        (c.id_usuario_inicio === targetUserId && c.id_usuario_destino === this.userId)
+      );
+
+      if (chatExistente) {
+        if (chatExistente.estado === 'ACEPTADA') {
+          // Ya hay chat activo, simplemente lo abrimos
+          this.chatActivo = true;
+          this.conversacionActiva = chatExistente;
+          this.cargarMensajes(chatExistente.id_conversacion);
+        } else if (chatExistente.estado === 'PENDIENTE') {
+          if (chatExistente.soy_inicio) {
+            this.messageService.add({severity:'info', summary:'Aviso', detail:'Ya enviaste una solicitud a este usuario. Espera a que acepte.'});
+          } else {
+            this.messageService.add({severity:'info', summary:'Aviso', detail:'Este usuario ya te envió una solicitud. Revisa tus solicitudes.'});
+            this.cambiarTab('solicitudes');
+          }
+        }
+        return; // Detener ejecución para no crear duplicado
+      }
+
+      // 2. Si no existe ninguna, crear la solicitud
       const data = {
         id_usuario_inicio: this.userId,
-        id_usuario_destino: conv.id_usuario,
-        id_publicacion: conv.id_publicacion
+        id_usuario_destino: targetUserId,
+        id_publicacion: obj.id_publicacion // esto funciona tanto si obj es pub o com
       };
+      
       this.chatService.iniciarConversacion(data).subscribe({
         next: () => {
-          this.messageService.add({severity:'success', summary:'Enviada', detail:'Solicitud enviada'});
+          this.messageService.add({severity:'success', summary:'Enviada', detail:'Solicitud enviada exitosamente'});
+          this.cargarConversaciones(); // Recargar para que aparezca en caso de que vayan a solicitudes
         }
       });
       return;
     }
     
+    // Si es una conversacion existente de la lista
     this.chatActivo = true;
-    this.conversacionActiva = conv;
-    this.cargarMensajes(conv.id_conversacion);
+    this.conversacionActiva = obj;
+    this.cargarMensajes(obj.id_conversacion);
+  }
+
+  scrollToBottomChat() {
+    setTimeout(() => {
+      if (this.chatContainer) {
+        this.chatContainer.nativeElement.scrollTop = this.chatContainer.nativeElement.scrollHeight;
+      }
+    }, 150);
   }
 
   cargarMensajes(idConversacion: number) {
@@ -471,6 +517,7 @@ export class Home implements OnInit, OnDestroy {
       next: (data) => {
         this.mensajes = data;
         this.cdr.detectChanges();
+        this.scrollToBottomChat();
       }
     });
   }
