@@ -117,7 +117,7 @@
 /* MAIN LAYOUT */
 .main-content {
   display: grid;
-  grid-template-columns: 250px 1fr 350px;
+  grid-template-columns: 1fr 350px;
   flex: 1;
   overflow: hidden;
 }
@@ -1433,4 +1433,51 @@
 /* Reducir el gap entre botón y picker */
 .fb-reactions-picker {
   bottom: calc(100% + 4px);  /* antes era 8px, lo reducimos */
+}
+
+/* =========================================
+   RESPONSIVE DESIGN 
+   ========================================= */
+
+@media (max-width: 1024px) {
+  .main-content {
+    grid-template-columns: 1fr; /* Oculta la columna del sidebar derecho */
+  }
+  
+  .sidebar-right {
+    display: none; /* Ocultar sidebar derecho en móviles/tablets */
+  }
+  
+  .navbar {
+    padding: 0 1rem;
+  }
+  
+  .nav-links {
+    display: none; /* Ocultar links de texto en navbar */
+  }
+  
+  .search-bar {
+    flex: 0 1 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .feed {
+    padding: 1rem;
+  }
+  
+  .welcome-banner {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+  
+  .post-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .search-bar {
+    display: none; /* Ocultar búsqueda en móviles muy pequeños o adaptarla */
+  }
 }

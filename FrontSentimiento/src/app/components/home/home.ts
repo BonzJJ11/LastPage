@@ -14,7 +14,7 @@ import { ToastModule } from 'primeng/toast';
 import { DrawerModule } from 'primeng/drawer';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
-import { LucideAngularModule, Home as HomeIconLucide, Compass, Users, Bookmark, MessageSquare, Bell, Search, PenTool, ChevronDown, User, Settings, LogOut, Sun, Share2, MoreHorizontal, Image as ImageIcon, Tag, Smile, Lock, Heart, ShieldAlert, Globe, Trash, X, Send, MessageCircle } from 'lucide-angular';
+import { LucideAngularModule, Home as HomeIconLucide, Compass, Users, Bookmark, MessageSquare, Bell, Search, PenTool, ChevronDown, User, Settings, LogOut, Sun, Share2, MoreHorizontal, Image as ImageIcon, Tag, Smile, Lock, Heart, ShieldAlert, Globe, Trash, X, Send, MessageCircle, Menu as LucideMenu } from 'lucide-angular';
 import { CategoriaService, Categoria } from '../../core/servicios/categoria.service';
 import { PublicacionService } from '../../core/servicios/publicacion.service';
 import { ComentarioService } from '../../core/services/comentario.service';
@@ -80,6 +80,7 @@ export class Home implements OnInit, OnDestroy {
   readonly XIcon = X;
   readonly SendIcon = Send;
   readonly MessageCircleIcon = MessageCircle;
+  readonly MenuIcon = LucideMenu;
 
   isAdmin = false;
   userId: number | null = null;
@@ -111,8 +112,7 @@ export class Home implements OnInit, OnDestroy {
 
   // Variables para vistas internas (tabs)
   currentTab = 'home'; // 'home', 'guardados', 'mensajes', 'notificaciones'
-  menuVisible = true;
-  mobileMenuVisible = false;
+  menuVisible = false;
 
   // Variables para Guardados
   publicacionesGuardadas: any[] = [];
@@ -200,15 +200,11 @@ export class Home implements OnInit, OnDestroy {
   }
 
   toggleMenu() {
-    if (typeof window !== 'undefined' && window.innerWidth <= 900) {
-      this.mobileMenuVisible = true;
-      return;
-    }
     this.menuVisible = !this.menuVisible;
   }
 
   cerrarMenuMovil() {
-    this.mobileMenuVisible = false;
+    this.menuVisible = false;
   }
 
   get guardadosNoVistos(): number {

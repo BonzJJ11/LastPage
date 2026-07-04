@@ -10,7 +10,11 @@
       Página Pasada
     </div>
 
-    <p-button icon="pi pi-bars" styleClass="btn-menu-toggle p-button-text" (onClick)="toggleMenu()" pTooltip="Menú"></p-button>
+    <p-button styleClass="btn-menu-toggle p-button-text p-button-rounded" (onClick)="toggleMenu()" pTooltip="Menú">
+      <ng-template pTemplate="icon">
+        <i-lucide [img]="MenuIcon" size="20" style="color: #666;"></i-lucide>
+      </ng-template>
+    </p-button>
 
     <div class="nav-links">
       <div class="nav-link active">
@@ -71,23 +75,23 @@
     </div>
   </nav>
 
-  <p-drawer [(visible)]="mobileMenuVisible" header="Menú" position="left" styleClass="mobile-menu-drawer">
+  <p-drawer [(visible)]="menuVisible" header="Menú" position="left" styleClass="mobile-menu-drawer">
     <div class="menu-section">
       <div class="menu-title">Principal</div>
-      <div class="menu-item" [class.active]="currentTab === 'home'" (click)="cambiarTab('home')">
+      <div class="menu-item" [class.active]="currentTab === 'home'" (click)="cambiarTab('home'); menuVisible = false">
         <div class="menu-item-left"><i-lucide [img]="HomeIcon" size="18"></i-lucide> Inicio</div>
       </div>
-      <div class="menu-item">
+      <div class="menu-item" (click)="menuVisible = false">
         <div class="menu-item-left"><i-lucide [img]="CompassIcon" size="18"></i-lucide> Explorar</div>
       </div>
-      <div class="menu-item" [class.active]="currentTab === 'guardados'" (click)="cambiarTab('guardados')">
+      <div class="menu-item" [class.active]="currentTab === 'guardados'" (click)="cambiarTab('guardados'); menuVisible = false">
         <div class="menu-item-left"><i-lucide [img]="BookmarkIcon" size="18"></i-lucide> Guardados</div>
         <div class="badge" *ngIf="guardadosNoVistos > 0">{{ guardadosNoVistos }}</div>
       </div>
-      <div class="menu-item" [class.active]="currentTab === 'mensajes'" (click)="cambiarTab('mensajes')">
+      <div class="menu-item" [class.active]="currentTab === 'mensajes'" (click)="cambiarTab('mensajes'); menuVisible = false">
         <div class="menu-item-left"><i-lucide [img]="MessageSquareIcon" size="18"></i-lucide> Mensajes</div>
       </div>
-      <div class="menu-item" [class.active]="currentTab === 'notificaciones'" (click)="cambiarTab('notificaciones')">
+      <div class="menu-item" [class.active]="currentTab === 'notificaciones'" (click)="cambiarTab('notificaciones'); menuVisible = false">
         <div class="menu-item-left"><i-lucide [img]="BellIcon" size="18"></i-lucide> Notificaciones</div>
         <div class="badge" *ngIf="notificacionesNoLeidas > 0">{{ notificacionesNoLeidas }}</div>
       </div>
@@ -98,65 +102,34 @@
       <div class="menu-item"><div class="menu-item-left"><i-lucide [img]="HeartIcon" size="16" style="color: #f44336;"></i-lucide> Relaciones</div></div>
       <div class="menu-item"><div class="menu-item-left"><i-lucide [img]="CompassIcon" size="16" style="color: #ff9800;"></i-lucide> Superación</div></div>
       <div class="menu-item"><div class="menu-item-left"><i-lucide [img]="UsersIcon" size="16" style="color: #2196f3;"></i-lucide> Familia</div></div>
+      
+      <!-- Botón para Administrador -->
+      <div class="menu-item" *ngIf="isAdmin" (click)="abrirAdminCategorias(); menuVisible = false" style="margin-top: 10px; border: 1px dashed #b85c38;">
+        <div class="menu-item-left"><i-lucide [img]="ShieldIcon" size="16" style="color: #b85c38;"></i-lucide> Administrar</div>
+      </div>
+    </div>
+
+    <div class="menu-section">
+      <div class="menu-title">Tendencias</div>
+      <div class="tag-item">
+        <div>
+          <div class="tag-name"># superación personal</div>
+          <div class="tag-count">2.4K posts</div>
+        </div>
+        <span style="color: #ff9800;">🔥</span>
+      </div>
+      <div class="tag-item">
+        <div>
+          <div class="tag-name"># ansiedad</div>
+          <div class="tag-count">1.8K posts</div>
+        </div>
+        <span style="color: #ff9800;">🔥</span>
+      </div>
     </div>
   </p-drawer>
 
   <!-- MAIN CONTENT -->
-  <div class="main-content" [class.menu-collapsed]="!menuVisible">
-    
-    <!-- LEFT SIDEBAR -->
-    <aside class="sidebar-left">
-      <div class="menu-section">
-        <div class="menu-title">Principal</div>
-        <div class="menu-item" [class.active]="currentTab === 'home'" (click)="cambiarTab('home')">
-          <div class="menu-item-left"><i-lucide [img]="HomeIcon" size="18"></i-lucide> Inicio</div>
-        </div>
-        <div class="menu-item">
-          <div class="menu-item-left"><i-lucide [img]="CompassIcon" size="18"></i-lucide> Explorar</div>
-        </div>
-        <div class="menu-item" [class.active]="currentTab === 'guardados'" (click)="cambiarTab('guardados')">
-          <div class="menu-item-left"><i-lucide [img]="BookmarkIcon" size="18"></i-lucide> Guardados</div>
-          <div class="badge" *ngIf="guardadosNoVistos > 0">{{ guardadosNoVistos }}</div>
-        </div>
-        <div class="menu-item" [class.active]="currentTab === 'mensajes'" (click)="cambiarTab('mensajes')">
-          <div class="menu-item-left"><i-lucide [img]="MessageSquareIcon" size="18"></i-lucide> Mensajes</div>
-        </div>
-        <div class="menu-item" [class.active]="currentTab === 'notificaciones'" (click)="cambiarTab('notificaciones')">
-          <div class="menu-item-left"><i-lucide [img]="BellIcon" size="18"></i-lucide> Notificaciones</div>
-          <div class="badge" *ngIf="notificacionesNoLeidas > 0">{{ notificacionesNoLeidas }}</div>
-        </div>
-      </div>
-
-      <div class="menu-section">
-        <div class="menu-title">Categorías</div>
-        <div class="menu-item"><div class="menu-item-left"><i-lucide [img]="HeartIcon" size="16" style="color: #f44336;"></i-lucide> Relaciones</div></div>
-        <div class="menu-item"><div class="menu-item-left"><i-lucide [img]="CompassIcon" size="16" style="color: #ff9800;"></i-lucide> Superación</div></div>
-        <div class="menu-item"><div class="menu-item-left"><i-lucide [img]="UsersIcon" size="16" style="color: #2196f3;"></i-lucide> Familia</div></div>
-        
-        <!-- Botón para Administrador -->
-        <div class="menu-item" *ngIf="isAdmin" (click)="abrirAdminCategorias()" style="margin-top: 10px; border: 1px dashed #b85c38;">
-          <div class="menu-item-left"><i-lucide [img]="ShieldIcon" size="16" style="color: #b85c38;"></i-lucide> Administrar</div>
-        </div>
-      </div>
-
-      <div class="menu-section">
-        <div class="menu-title">Tendencias</div>
-        <div class="tag-item">
-          <div>
-            <div class="tag-name"># superación personal</div>
-            <div class="tag-count">2.4K posts</div>
-          </div>
-          <span style="color: #ff9800;">🔥</span>
-        </div>
-        <div class="tag-item">
-          <div>
-            <div class="tag-name"># ansiedad</div>
-            <div class="tag-count">1.8K posts</div>
-          </div>
-          <span style="color: #ff9800;">🔥</span>
-        </div>
-      </div>
-    </aside>
+  <div class="main-content">
 
     <!-- FEED -->
     <main class="feed">
@@ -323,7 +296,7 @@
                   (click)="toggleGuardarPublicacion(pub)"
                   [pTooltip]="pub.mi_guardado ? 'Quitar de guardados' : 'Guardar'"
                 >
-                  <i class="pi" [ngClass]="pub.mi_guardado ? 'pi-bookmark-fill' : 'pi-bookmark'"></i>
+                  <i-lucide [img]="BookmarkIcon" size="20" [ngStyle]="{'fill': pub.mi_guardado ? '#b85c38' : 'none', 'color': pub.mi_guardado ? '#b85c38' : '#888'}"></i-lucide>
                 </button>
               </div>
             </div>
@@ -409,7 +382,11 @@
               </div>
 
               <div>
-                <button pButton icon="pi pi-bookmark-fill" class="p-button-rounded p-button-text p-button-danger" (click)="quitarGuardado(pub.id_guardado, pub.id_publicacion)" pTooltip="Quitar de guardados"></button>
+                <p-button styleClass="p-button-rounded p-button-text p-button-danger" (onClick)="quitarGuardado(pub.id_guardado, pub.id_publicacion)" pTooltip="Quitar de guardados">
+                  <ng-template pTemplate="icon">
+                    <i-lucide [img]="TrashIcon" size="18"></i-lucide>
+                  </ng-template>
+                </p-button>
               </div>
             </div>
             
