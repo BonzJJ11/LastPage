@@ -1,0 +1,402 @@
+<p-toast></p-toast>
+
+<div class="profile-page-wrapper">
+  
+  <!-- NAVBAR SUPERIOR -->
+  <header class="profile-navbar">
+    <div class="nav-left">
+      <button class="btn-back" (click)="volverAHome()" pTooltip="Volver al Inicio">
+        <i-lucide [img]="ArrowLeftIcon" size="20"></i-lucide>
+        <span>Volver al muro</span>
+      </button>
+
+      <div class="nav-brand" (click)="volverAHome()">
+        <div class="brand-icon">
+          <i-lucide [img]="PenIcon" size="18"></i-lucide>
+        </div>
+        <span class="brand-name">LastPage</span>
+      </div>
+    </div>
+
+    <div class="nav-right">
+      <div class="user-pill" *ngIf="usuario">
+        <div class="pill-avatar" *ngIf="!usuario.foto_perfil">{{ usuario.username?.charAt(0).toUpperCase() }}</div>
+        <img *ngIf="usuario.foto_perfil" [src]="usuario.foto_perfil" class="pill-avatar-img" alt="Avatar" />
+        <span class="pill-username">@{{ usuario.username }}</span>
+      </div>
+
+      <p-button styleClass="btn-logout-nav p-button-text p-button-rounded" (onClick)="cerrarSesion()" pTooltip="Cerrar sesión">
+        <ng-template pTemplate="icon">
+          <i-lucide [img]="LogOutIcon" size="18"></i-lucide>
+        </ng-template>
+      </p-button>
+    </div>
+  </header>
+
+  <!-- ESTADO DE CARGA -->
+  <div class="profile-loading-state" *ngIf="loading">
+    <div class="loading-spinner-circle"></div>
+    <p>Cargando perfil...</p>
+  </div>
+
+  <!-- ESTADO DE ERROR -->
+  <div class="profile-error-state" *ngIf="!loading && !usuario">
+    <div class="error-icon-circle">
+      <i-lucide [img]="ShieldAlertIcon" size="32"></i-lucide>
+    </div>
+    <h3>No se pudo cargar la información del usuario</h3>
+    <p>Por favor verifica tu conexión o vuelve a iniciar sesión.</p>
+    <p-button label="Volver al muro" styleClass="btn-primary-action" (onClick)="volverAHome()"></p-button>
+  </div>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="profile-container" *ngIf="!loading && usuario">
+    
+    <!-- TARJETA PRINCIPAL DE PERFIL (HERO) -->
+    <section class="profile-hero-card">
+      <div class="hero-banner-accent"></div>
+
+      <div class="hero-content">
+        <!-- AVATAR Y DETALLES -->
+        <div class="hero-main-row">
+          <div class="avatar-container">
+            <div class="avatar-large" *ngIf="!usuario.foto_perfil">
+              {{ usuario.username?.charAt(0).toUpperCase() }}
+            </div>
+            <img *ngIf="usuario.foto_perfil" [src]="usuario.foto_perfil" class="avatar-large-img" alt="Foto de perfil" />
+            
+            <button class="btn-change-avatar" (click)="activeTab = 'editar'" pTooltip="Cambiar foto">
+              <i-lucide [img]="CameraIcon" size="16"></i-lucide>
+            </button>
+          </div>
+
+          <div class="user-details-col">
+            <div class="user-identity">
+              <h2>{{ usuario.nombre || usuario.username }}</h2>
+              <div class="identity-badges">
+                <span class="username-handle">@{{ usuario.username }}</span>
+                <p-tag *ngIf="usuario.id_rol === 1 || usuario.id_rol?.id_rol === 1" value="Administrador" severity="success" icon="pi pi-shield"></p-tag>
+                <p-tag *ngIf="usuario.id_rol !== 1 && usuario.id_rol?.id_rol !== 1" value="Miembro" severity="info"></p-tag>
+              </div>
+            </div>
+
+            <!-- BIOGRAFÍA -->
+            <div class="bio-container">
+              <p *ngIf="usuario.biografia" class="bio-text">
+                "{{ usuario.biografia }}"
+              </p>
+              <p *ngIf="!usuario.biografia" class="bio-empty" (click)="activeTab = 'editar'">
+                <i-lucide [img]="SparklesIcon" size="14"></i-lucide>
+                Aún no has agregado una biografía. Haz clic aquí para añadir una presentación sobre ti.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- FILA DE METADATOS Y ESTADÍSTICAS -->
+        <div class="meta-stats-row">
+          <div class="meta-stat-item">
+            <div class="stat-icon-wrapper stories">
+              <i-lucide [img]="PenIcon" size="18"></i-lucide>
+            </div>
+            <div class="stat-info">
+              <span class="stat-number">{{ misHistorias.length }}</span>
+              <span class="stat-label">Historias publicadas</span>
+            </div>
+          </div>
+
+          <div class="meta-stat-item">
+            <div class="stat-icon-wrapper saved">
+              <i-lucide [img]="BookmarkIcon" size="18"></i-lucide>
+            </div>
+            <div class="stat-info">
+              <span class="stat-number">{{ totalGuardados }}</span>
+              <span class="stat-label">Historias guardadas</span>
+            </div>
+          </div>
+
+          <div class="meta-stat-item">
+            <div class="stat-icon-wrapper date">
+              <i-lucide [img]="CalendarIcon" size="18"></i-lucide>
+            </div>
+            <div class="stat-info">
+              <span class="stat-number">{{ formatearFecha(usuario.fecha_registro) }}</span>
+              <span class="stat-label">Fecha de registro</span>
+            </div>
+          </div>
+
+          <div class="meta-stat-item">
+            <div class="stat-icon-wrapper access">
+              <i-lucide [img]="ClockIcon" size="18"></i-lucide>
+            </div>
+            <div class="stat-info">
+              <span class="stat-number">{{ formatearUltimoAcceso(usuario.ultimo_acceso) }}</span>
+              <span class="stat-label">Último acceso</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NAVEGACIÓN POR PESTAÑAS -->
+    <div class="tabs-nav-bar">
+      <button class="tab-btn" [class.active]="activeTab === 'historias'" (click)="activeTab = 'historias'">
+        <i-lucide [img]="PenIcon" size="18"></i-lucide>
+        <span>Mis Historias ({{ misHistorias.length }})</span>
+      </button>
+
+      <button class="tab-btn" [class.active]="activeTab === 'editar'" (click)="activeTab = 'editar'">
+        <i-lucide [img]="UserIcon" size="18"></i-lucide>
+        <span>Editar Perfil</span>
+      </button>
+
+      <button class="tab-btn" [class.active]="activeTab === 'seguridad'" (click)="activeTab = 'seguridad'">
+        <i-lucide [img]="LockIcon" size="18"></i-lucide>
+        <span>Seguridad y Cuenta</span>
+      </button>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- TAB 1: MIS HISTORIAS                           -->
+    <!-- ============================================== -->
+    <section class="tab-panel" *ngIf="activeTab === 'historias'">
+      <div *ngIf="misHistorias.length === 0" class="empty-state-card">
+        <div class="empty-icon-circle">
+          <i-lucide [img]="PenIcon" size="32"></i-lucide>
+        </div>
+        <h3>Aún no has compartido historias</h3>
+        <p>Tus vivencias, pensamientos y desahogos aparecerán aquí. ¡Comienza a escribir y conecta con la comunidad!</p>
+        <p-button label="Ir al muro para escribir" styleClass="btn-primary-action" (onClick)="volverAHome()"></p-button>
+      </div>
+
+      <div class="stories-grid" *ngIf="misHistorias.length > 0">
+        <article class="story-card" *ngFor="let story of misHistorias">
+          <div class="story-header">
+            <span class="category-pill">
+              <i-lucide [img]="HeartIcon" size="12"></i-lucide>
+              {{ story.nombre_categoria || 'Historia' }}
+            </span>
+            <div class="story-date">{{ formatearFecha(story.fecha_publicacion) }}</div>
+          </div>
+
+          <h4 class="story-title">{{ story.titulo }}</h4>
+          <p class="story-content">{{ story.contenido }}</p>
+
+          <div class="story-footer">
+            <span class="visibility-tag" [ngClass]="{'anon': story.visibilidad === 'ANONIMO'}">
+              <i-lucide [img]="story.visibilidad === 'ANONIMO' ? LockIcon : SparklesIcon" size="12"></i-lucide>
+              {{ story.visibilidad === 'ANONIMO' ? 'Publicado como Anónimo' : 'Publicado Público' }}
+            </span>
+
+            <div class="story-actions">
+              <button class="btn-action-story delete" (click)="eliminarHistoria(story.id_publicacion)" pTooltip="Eliminar historia">
+                <i-lucide [img]="TrashIcon" size="16"></i-lucide>
+              </button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TAB 2: EDITAR PERFIL                           -->
+    <!-- ============================================== -->
+    <section class="tab-panel" *ngIf="activeTab === 'editar'">
+      <div class="form-card">
+        <div class="form-header">
+          <h3>Información del Perfil</h3>
+          <p>Personaliza tu presentación pública y foto de perfil en LastPage.</p>
+        </div>
+
+        <!-- SECCIÓN DE FOTO DE PERFIL -->
+        <div class="form-section">
+          <label class="form-label">Foto de Perfil</label>
+          <div class="avatar-picker-wrapper">
+            <div class="current-avatar-preview">
+              <img *ngIf="editFotoPerfil" [src]="editFotoPerfil" alt="Preview" class="preview-img" />
+              <div *ngIf="!editFotoPerfil" class="preview-initials">
+                {{ usuario.username?.charAt(0).toUpperCase() }}
+              </div>
+            </div>
+
+            <div class="avatar-picker-controls">
+              <span class="picker-help">Pega la URL de una foto o imagen web:</span>
+              <div class="input-with-button">
+                <input type="text" pInputText [(ngModel)]="editFotoPerfil" placeholder="https://ejemplo.com/mi-foto.jpg" class="input-url" />
+                <button class="btn-clear-avatar" *ngIf="editFotoPerfil" (click)="editFotoPerfil = ''" pTooltip="Quitar foto">
+                  <i-lucide [img]="XIcon" size="16"></i-lucide>
+                </button>
+              </div>
+
+              <!-- AVATARES PREDEFINIDOS -->
+              <span class="picker-help" style="margin-top: 10px;">O elige uno de nuestros avatares sugeridos:</span>
+              <div class="preset-avatars-row">
+                <img *ngFor="let av of avataresSugeridos" 
+                     [src]="av" 
+                     alt="Sugerido" 
+                     class="preset-avatar-thumb"
+                     [class.selected]="editFotoPerfil === av"
+                     (click)="seleccionarAvatar(av)" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECCIÓN NOMBRE Y USERNAME -->
+        <div class="form-section">
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label" for="nombreInput">Nombre completo</label>
+              <input id="nombreInput" type="text" pInputText [(ngModel)]="editNombre" placeholder="Tu nombre y apellido" class="input-field" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Nombre de usuario (@)</label>
+              <input type="text" pInputText [value]="usuario.username" disabled class="input-field disabled" />
+              <span class="field-hint">El nombre de usuario es tu identificador único.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECCIÓN BIOGRAFÍA -->
+        <div class="form-section">
+          <label class="form-label" for="bioInput">Biografía</label>
+          <textarea id="bioInput" 
+                    pTextarea 
+                    [(ngModel)]="editBiografia" 
+                    rows="4" 
+                    maxlength="500"
+                    placeholder="Cuéntale a la comunidad sobre ti, qué te apasiona, cómo te sientes hoy..." 
+                    class="textarea-field"></textarea>
+          <div class="char-counter" [class.limit]="editBiografia.length >= 480">
+            {{ editBiografia.length }} / 500 caracteres
+          </div>
+        </div>
+
+        <div class="form-footer">
+          <p-button label="Guardar Cambios" 
+                    icon="pi pi-check" 
+                    styleClass="btn-primary-action" 
+                    [loading]="guardando" 
+                    (onClick)="guardarPerfil()">
+          </p-button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TAB 3: SEGURIDAD Y CUENTA                      -->
+    <!-- ============================================== -->
+    <section class="tab-panel" *ngIf="activeTab === 'seguridad'">
+      
+      <!-- CAMBIO DE CONTRASEÑA -->
+      <div class="form-card security-card">
+        <div class="form-header">
+          <h3>Seguridad de la Cuenta</h3>
+          <p>Actualiza tu contraseña para mantener protegida tu cuenta.</p>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label" for="newPass">Nueva Contraseña</label>
+            <input id="newPass" type="password" pInputText [(ngModel)]="nuevaPassword" placeholder="Mínimo 6 caracteres" class="input-field" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="confPass">Confirmar Nueva Contraseña</label>
+            <input id="confPass" type="password" pInputText [(ngModel)]="confirmarPassword" placeholder="Repite tu nueva contraseña" class="input-field" />
+          </div>
+        </div>
+
+        <div class="form-footer" style="margin-top: 1rem;">
+          <p-button label="Actualizar Contraseña" 
+                    styleClass="btn-secondary-action" 
+                    [disabled]="!nuevaPassword || nuevaPassword !== confirmarPassword" 
+                    [loading]="guardando" 
+                    (onClick)="cambiarPassword()">
+          </p-button>
+        </div>
+      </div>
+
+      <!-- ZONA DE PELIGRO: ELIMINAR CUENTA -->
+      <div class="danger-zone-card">
+        <div class="danger-zone-header">
+          <div class="danger-icon-wrapper">
+            <i-lucide [img]="ShieldAlertIcon" size="24"></i-lucide>
+          </div>
+          <div>
+            <h4>Zona de Peligro</h4>
+            <p>Acciones destructivas e irreversibles sobre tu cuenta.</p>
+          </div>
+        </div>
+
+        <div class="danger-zone-body">
+          <div class="danger-desc">
+            <strong>Eliminar cuenta de LastPage</strong>
+            <p>Al eliminar tu perfil se borrarán permanentemente todas tus publicaciones, historias compartidas, comentarios y reacciones. Esta acción no se puede deshacer.</p>
+          </div>
+
+          <p-button label="Eliminar mi cuenta" 
+                    styleClass="btn-danger-action" 
+                    (onClick)="abrirDialogoEliminar()">
+            <ng-template pTemplate="icon">
+              <i-lucide [img]="TrashIcon" size="16" style="margin-right: 8px;"></i-lucide>
+            </ng-template>
+          </p-button>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- MODAL DE CONFIRMACIÓN PARA ELIMINAR CUENTA -->
+  <p-dialog [(visible)]="displayDeleteDialog" 
+            [modal]="true" 
+            [draggable]="false" 
+            [resizable]="false" 
+            [style]="{width: '480px'}" 
+            styleClass="delete-confirm-dialog">
+    <ng-template pTemplate="header">
+      <div class="delete-dialog-header">
+        <div class="delete-icon-badge">
+          <i-lucide [img]="ShieldAlertIcon" size="22"></i-lucide>
+        </div>
+        <div class="delete-dialog-title">
+          <h3>¿Eliminar cuenta permanentemente?</h3>
+          <span>Esta acción es irreversible</span>
+        </div>
+      </div>
+    </ng-template>
+
+    <div class="delete-dialog-body" *ngIf="usuario">
+      <p class="warning-text">
+        Estás a punto de borrar la cuenta <strong>@{{ usuario.username }}</strong>. 
+        Se eliminarán de forma definitiva todas tus historias, comentarios, guardados y chats asociados.
+      </p>
+
+      <div class="confirmation-input-box">
+        <label for="confUser">Para confirmar, escribe tu nombre de usuario <strong>@{{ usuario.username }}</strong> a continuación:</label>
+        <input id="confUser" 
+               type="text" 
+               pInputText 
+               [(ngModel)]="confirmacionUsername" 
+               placeholder="{{ usuario.username }}" 
+               class="input-confirm" />
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <div class="delete-dialog-footer">
+        <p-button label="Cancelar" styleClass="p-button-text" (onClick)="displayDeleteDialog = false"></p-button>
+        <p-button label="Sí, eliminar definitivamente" 
+                  styleClass="btn-confirm-delete" 
+                  [disabled]="!usuario || confirmacionUsername.trim().toLowerCase() !== usuario.username.toLowerCase()" 
+                  [loading]="isDeleting" 
+                  (onClick)="confirmarEliminarCuenta()">
+        </p-button>
+      </div>
+    </ng-template>
+  </p-dialog>
+
+</div>

@@ -88,6 +88,12 @@ export class Login implements OnInit {
             if (respuesta && respuesta.id_usuario) {
               localStorage.setItem('user_id', respuesta.id_usuario.toString());
             }
+            if (respuesta && respuesta.foto_perfil) {
+              localStorage.setItem('user_photo', respuesta.foto_perfil);
+            }
+            if (respuesta && respuesta.nombre) {
+              localStorage.setItem('active_nombre', respuesta.nombre);
+            }
           }
 
           this.messageService.add({ severity: 'success', summary: 'Bienvenido', detail: 'Inicio de sesión exitoso' });

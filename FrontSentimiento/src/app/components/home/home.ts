@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
@@ -31,6 +31,7 @@ import { AuthService } from '../../core/servicios/auth.service';
   imports: [
     CommonModule,
     FormsModule,
+    RouterModule,
     ButtonModule,
     CardModule,
     InputTextModule,
@@ -55,6 +56,7 @@ export class Home implements OnInit, OnDestroy {
   tituloHistoria = '';
   contenidoHistoria = '';
   activeUsername = 'JJ'; 
+  currentUserPhoto = '';
   
   // Iconos
   readonly HomeIcon = HomeIconLucide;
@@ -160,10 +162,48 @@ export class Home implements OnInit, OnDestroy {
         this.isAdmin = true;
       }
 
+      const photo = localStorage.getItem('user_photo');
+      if (photo) {
+        this.currentUserPhoto = photo;
+      }
+
       const idUser = localStorage.getItem('user_id');
-      if (idUser) {
+      if (idUser && !isNaN(parseInt(idUser))) {
         this.userId = parseInt(idUser);
         this.cargarGuardadosNoVistos();
+        this.authService.getUsuario(this.userId).subscribe({
+          next: (user) => {
+            if (user) {
+              if (user.foto_perfil) {
+                this.currentUserPhoto = user.foto_perfil;
+                localStorage.setItem('user_photo', user.foto_perfil);
+              }
+              if (user.username) {
+                this.activeUsername = user.username;
+                localStorage.setItem('active_username', user.username);
+              }
+              this.cdr.detectChanges();
+            }
+          },
+          error: () => {}
+        });
+      } else if (this.activeUsername) {
+        this.authService.getUsuarios().subscribe({
+          next: (usuarios) => {
+            const found = usuarios.find((u: any) => u.username?.toLowerCase() === this.activeUsername.toLowerCase());
+            if (found && found.id_usuario) {
+              this.userId = found.id_usuario;
+              localStorage.setItem('user_id', String(found.id_usuario));
+              if (found.foto_perfil) {
+                this.currentUserPhoto = found.foto_perfil;
+                localStorage.setItem('user_photo', found.foto_perfil);
+              }
+              this.cargarGuardadosNoVistos();
+              this.cdr.detectChanges();
+            }
+          },
+          error: () => {}
+        });
       }
     }
     
@@ -755,15 +795,6 @@ export class Home implements OnInit, OnDestroy {
     }
   }
 
-  cerrarSesion() {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('active_username');
-      localStorage.removeItem('user_role');
-      localStorage.removeItem('user_id');
-    }
-    this.router.navigate(['/login']);
-  }
-
   // (abrirChat removido por duplicidad)
   cerrarChat() {
     this.chatActivo = false;
@@ -880,5 +911,33 @@ export class Home implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  irAPerfil() {
+    this.router.navigate(['/profile']).catch(() => {
+      if (typeof window !== 'undefined') {
+        window.location.href = '/profile';
+      }
+    });
+  }
+
+  irAPerfilTab(tab: string) {
+    this.router.navigate(['/profile'], { queryParams: { tab } }).catch(() => {
+      if (typeof window !== 'undefined') {
+        window.location.href = `/profile?tab=${tab}`;
+      }
+    });
+  }
+
+  cerrarSesion() {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('active_username');
+      localStorage.removeItem('user_role');
+      localStorage.removeItem('user_id');
+      localStorage.removeItem('user_photo');
+      localStorage.removeItem('active_nombre');
+    }
+    this.router.navigate(['/login']);
   }
 }

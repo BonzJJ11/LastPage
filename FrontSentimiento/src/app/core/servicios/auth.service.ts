@@ -23,6 +23,18 @@ export class AuthService {
     return this.http.get<any[]>(`${this.apiUrl}/usuarios/`);
   }
 
+  getUsuario(id: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/usuarios/${id}/`);
+  }
+
+  updateUsuario(id: number, data: any): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/usuarios/${id}/`, data);
+  }
+
+  deleteUsuario(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/usuarios/${id}/`);
+  }
+
   // Métodos para manejar el token (se guarda en localStorage)
   setToken(token: string): void {
     // Verificamos window para evitar errores con Server-Side Rendering (SSR)

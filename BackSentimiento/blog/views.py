@@ -2,7 +2,9 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth.hashers import check_password
-from .models import Usuario, Categoria, Publicacion, Comentario, Reaccion, Guardado, Conversacion, Mensaje, Notificacion
+from django.utils import timezone
+from django.db.models import Q
+from .models import Usuario, Categoria, Publicacion, Comentario, Reaccion, Guardado, Conversacion, Mensaje, Notificacion, Reporte
 from .serializers import (UsuarioSerializer, CategoriaSerializer, PublicacionSerializer,
                           ComentarioSerializer, ReaccionSerializer, GuardadoSerializer,
                           ConversacionSerializer, MensajeSerializer, NotificacionSerializer)
@@ -10,6 +12,16 @@ from .serializers import (UsuarioSerializer, CategoriaSerializer, PublicacionSer
 class PublicacionViewSet(viewsets.ModelViewSet):
     queryset = Publicacion.objects.all().order_by('-fecha_publicacion')
     serializer_class = PublicacionSerializer
+
+    def perform_destroy(self, instance):
+        # Limpieza de dependencias antes de eliminar la publicación
+        Mensaje.objects.filter(id_conversacion__id_publicacion=instance).delete()
+        Conversacion.objects.filter(id_publicacion=instance).delete()
+        Reporte.objects.filter(id_publicacion=instance).delete()
+        Guardado.objects.filter(id_publicacion=instance).delete()
+        Reaccion.objects.filter(id_publicacion=instance).delete()
+        Comentario.objects.filter(id_publicacion=instance).delete()
+        instance.delete()
 
 class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
@@ -22,6 +34,28 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     """
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
+
+    def perform_destroy(self, instance):
+        # Limpieza previa para respetar integridad referencial en PostgreSQL
+        Mensaje.objects.filter(id_usuario=instance).delete()
+        Conversacion.objects.filter(Q(id_usuario_inicio=instance) | Q(id_usuario_destino=instance)).delete()
+        Reporte.objects.filter(id_usuario=instance).delete()
+        Notificacion.objects.filter(id_usuario=instance).delete()
+        Guardado.objects.filter(id_usuario=instance).delete()
+        Reaccion.objects.filter(id_usuario=instance).delete()
+        Comentario.objects.filter(id_usuario=instance).delete()
+        
+        # Limpiar dependencias de las publicaciones que pertenecen al usuario
+        pubs = Publicacion.objects.filter(id_usuario=instance)
+        Mensaje.objects.filter(id_conversacion__id_publicacion__in=pubs).delete()
+        Conversacion.objects.filter(id_publicacion__in=pubs).delete()
+        Reporte.objects.filter(id_publicacion__in=pubs).delete()
+        Guardado.objects.filter(id_publicacion__in=pubs).delete()
+        Reaccion.objects.filter(id_publicacion__in=pubs).delete()
+        Comentario.objects.filter(id_publicacion__in=pubs).delete()
+        pubs.delete()
+
+        instance.delete()
 
 class ComentarioViewSet(viewsets.ModelViewSet):
     queryset = Comentario.objects.all().order_by('fecha_comentario')
@@ -166,13 +200,27 @@ def login_view(request):
         # Buscar el usuario en la BD de forma case-insensitive
         usuario = Usuario.objects.get(username__iexact=username)
         
+        if not usuario.activo:
+            return Response({'error': 'Esta cuenta ha sido desactivada o eliminada.'}, status=status.HTTP_401_UNAUTHORIZED)
+
         # Verificar la contraseña (soporta encriptada y texto plano por si acaso)
         if check_password(password, usuario.password) or password == usuario.password:
+            # Registrar el último acceso
+            usuario.ultimo_acceso = timezone.now()
+            usuario.save(update_fields=['ultimo_acceso'])
+
             return Response({
                 'mensaje': 'Login exitoso', 
                 'token': 'fake-jwt-token-12345',
                 'id_rol': usuario.id_rol_id,
-                'id_usuario': usuario.id_usuario
+                'id_usuario': usuario.id_usuario,
+                'username': usuario.username,
+                'nombre': usuario.nombre,
+                'correo': usuario.correo,
+                'foto_perfil': usuario.foto_perfil,
+                'biografia': usuario.biografia,
+                'fecha_registro': usuario.fecha_registro,
+                'ultimo_acceso': usuario.ultimo_acceso
             })
         else:
             return Response({'error': 'Contraseña incorrecta'}, status=status.HTTP_401_UNAUTHORIZED)

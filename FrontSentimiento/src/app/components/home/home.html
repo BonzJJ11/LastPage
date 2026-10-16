@@ -17,14 +17,18 @@
     </p-button>
 
     <div class="nav-links">
-      <div class="nav-link active">
+      <div class="nav-link" [class.active]="currentTab === 'home'" (click)="cambiarTab('home')">
         <i-lucide [img]="HomeIcon" size="18"></i-lucide> Inicio
       </div>
-      <div class="nav-link">
-        <i-lucide [img]="CompassIcon" size="18"></i-lucide> Explorar
+      <div class="nav-link" (click)="irAPerfil()">
+        <i-lucide [img]="UserIcon" size="18"></i-lucide> Mi perfil
       </div>
-      <div class="nav-link">
-        <i-lucide [img]="UsersIcon" size="18"></i-lucide> Comunidades
+      <div class="nav-link" [class.active]="currentTab === 'guardados'" (click)="cambiarTab('guardados')">
+        <i-lucide [img]="BookmarkIcon" size="18"></i-lucide> Guardados
+        <div class="badge" *ngIf="guardadosNoVistos > 0" style="margin-left: 4px; font-size: 0.65rem;">{{ guardadosNoVistos }}</div>
+      </div>
+      <div class="nav-link" [class.active]="currentTab === 'solicitudes'" (click)="cambiarTab('solicitudes')">
+        <i-lucide [img]="MessageSquareIcon" size="18"></i-lucide> Mensajes
       </div>
     </div>
 
@@ -83,32 +87,34 @@
       </p-popover>
       
       <div class="profile-trigger" (click)="op.toggle($event)">
-        <div class="avatar" style="background-color: #8E6FD6;">{{ activeUsername.charAt(0).toUpperCase() }}</div>
+        <div class="avatar" style="background-color: #8E6FD6;" *ngIf="!currentUserPhoto">{{ (activeUsername || 'U').charAt(0).toUpperCase() }}</div>
+        <img *ngIf="currentUserPhoto" [src]="currentUserPhoto" class="avatar" style="object-fit: cover;" alt="Avatar" />
         <span style="font-size: 0.9rem; font-weight: 500; color: #555;">{{ activeUsername }}</span>
         <i-lucide [img]="ChevronDownIcon" size="16"></i-lucide>
       </div>
 
       <!-- Menú de Usuario -->
       <p-popover #op [style]="{width: '250px', padding: '0'}">
-        <div style="padding: 15px 15px 10px 15px; border-bottom: 1px solid #eaeaea; margin-bottom: 5px; display: flex; gap: 10px; align-items: center;">
-          <div class="avatar" style="background-color: #8E6FD6; width: 40px; height: 40px;">{{ activeUsername.charAt(0).toUpperCase() }}</div>
+        <div style="padding: 15px 15px 10px 15px; border-bottom: 1px solid #eaeaea; margin-bottom: 5px; display: flex; gap: 10px; align-items: center; cursor: pointer;" [routerLink]="['/profile']" (click)="irAPerfil(); op.hide()">
+          <div class="avatar" style="background-color: #8E6FD6; width: 40px; height: 40px;" *ngIf="!currentUserPhoto">{{ (activeUsername || 'U').charAt(0).toUpperCase() }}</div>
+          <img *ngIf="currentUserPhoto" [src]="currentUserPhoto" class="avatar" style="width: 40px; height: 40px; object-fit: cover;" alt="Avatar" />
           <div>
             <div style="font-weight: 600; color: #333;">Mi cuenta</div>
-            <div style="font-size: 0.8rem; color: #888;">{{ activeUsername }}@blog.com</div>
+            <div style="font-size: 0.8rem; color: #888;">@{{ activeUsername }}</div>
           </div>
         </div>
         <div style="padding: 0 10px 10px 10px;">
-          <div class="menu-item">
+          <div class="menu-item" [routerLink]="['/profile']" (click)="irAPerfil(); op.hide()" style="cursor: pointer;">
             <div class="menu-item-left"><i-lucide [img]="UserIcon" size="16"></i-lucide> Mi perfil</div>
           </div>
-          <div class="menu-item">
+          <div class="menu-item" (click)="cambiarTab('guardados'); op.hide()" style="cursor: pointer;">
             <div class="menu-item-left"><i-lucide [img]="BookmarkIcon" size="16"></i-lucide> Guardados</div>
           </div>
-          <div class="menu-item">
+          <div class="menu-item" [routerLink]="['/profile']" [queryParams]="{tab: 'editar'}" (click)="irAPerfilTab('editar'); op.hide()" style="cursor: pointer;">
             <div class="menu-item-left"><i-lucide [img]="SettingsIcon" size="16"></i-lucide> Configuración</div>
           </div>
-          <div class="menu-item" (click)="cerrarSesion()" style="color: #6A3FB1; margin-top: 5px; border-top: 1px solid #eaeaea; padding-top: 10px; border-radius: 0; cursor: pointer;">
-            <div class="menu-item-left"><i-lucide [img]="LogOutIcon" size="16"></i-lucide> Cerrar sesión</div>
+          <div class="menu-item" (click)="cerrarSesion()" style="color: #e53935; margin-top: 5px; border-top: 1px solid #eaeaea; padding-top: 10px; border-radius: 0; cursor: pointer;">
+            <div class="menu-item-left"><i-lucide [img]="LogOutIcon" size="16" style="color: #e53935;"></i-lucide> Cerrar sesión</div>
           </div>
         </div>
       </p-popover>
@@ -120,6 +126,9 @@
       <div class="menu-title">Principal</div>
       <div class="menu-item" [class.active]="currentTab === 'home'" (click)="cambiarTab('home'); menuVisible = false">
         <div class="menu-item-left"><i-lucide [img]="HomeIcon" size="18"></i-lucide> Inicio</div>
+      </div>
+      <div class="menu-item" (click)="irAPerfil(); menuVisible = false">
+        <div class="menu-item-left"><i-lucide [img]="UserIcon" size="18"></i-lucide> Mi perfil</div>
       </div>
       <div class="menu-item" (click)="menuVisible = false">
         <div class="menu-item-left"><i-lucide [img]="CompassIcon" size="18"></i-lucide> Explorar</div>
