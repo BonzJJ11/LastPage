@@ -1,16 +1,16 @@
 :host {
   display: block;
-  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-  color: #374151;
-  --color-60: #F8F5F2; /* Right panel background */
-  --color-30: #3E2723; /* Left panel background - dark brown */
-  --color-10: #D29577; /* Button orange/brown */
-  --color-10-hover: #b87b5d;
-  --text-dark: #374151;
-  --text-muted: #6B6660;
-  --text-light: #F8F5F2; /* Text on dark bg */
-  --text-light-muted: #D6CCC2;
-  --border-color: #E2DDD9;
+  font-family: 'Poppins', 'Inter', sans-serif;
+  color: #4F6D57;
+  --color-60: #F8F9FA; /* Right panel background */
+  --color-30: #6A3FB1; /* Left panel background - dark purple */
+  --color-10: #4CAF6B; /* Button green */
+  --color-10-hover: #3d9259;
+  --text-dark: #4F6D57;
+  --text-muted: #7FA3B8;
+  --text-light: #F8F9FA; /* Text on dark bg */
+  --text-light-muted: #DCE6D8;
+  --border-color: #A7E3B5;
   --bg-white: #FFFFFF;
 }
 
@@ -280,7 +280,7 @@
   outline: 0 none;
   outline-offset: 0;
   border-color: var(--color-10);
-  box-shadow: 0 0 0 3px rgba(210, 149, 119, 0.2);
+  box-shadow: 0 0 0 3px rgba(76, 175, 107, 0.2);
 }
 
 ::ng-deep .ng-invalid.ng-dirty > .p-inputtext,

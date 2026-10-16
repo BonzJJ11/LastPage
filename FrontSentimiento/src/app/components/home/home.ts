@@ -22,6 +22,7 @@ import { ReaccionService } from '../../core/services/reaccion.service';
 import { GuardadoService } from '../../core/services/guardado.service';
 import { ChatService } from '../../core/services/chat.service';
 import { NotificacionService } from '../../core/services/notificacion.service';
+import { AuthService } from '../../core/servicios/auth.service';
 
 
 @Component({
@@ -130,6 +131,9 @@ export class Home implements OnInit, OnDestroy {
   conversacionActiva: any = null;
   nuevoMensaje = '';
 
+  // Usuarios de la comunidad
+  usuariosComunidad: any[] = [];
+
   constructor(
     private router: Router, 
     private categoriaService: CategoriaService,
@@ -139,6 +143,7 @@ export class Home implements OnInit, OnDestroy {
     private guardadoService: GuardadoService,
     private chatService: ChatService,
     private notificacionService: NotificacionService,
+    private authService: AuthService,
     private messageService: MessageService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -163,6 +168,7 @@ export class Home implements OnInit, OnDestroy {
     }
     
     this.cargarCategorias();
+    this.cargarUsuariosComunidad();
     this.cargarDatosGenerales();
 
     // Actualizar datos automáticamente cada 5 segundos
@@ -180,6 +186,7 @@ export class Home implements OnInit, OnDestroy {
   }
 
   cargarDatosGenerales() {
+    this.cargarUsuariosComunidad();
     if (this.currentTab === 'home') this.cargarPublicaciones();
     if (this.currentTab === 'guardados') this.cargarGuardados();
     if (this.currentTab === 'solicitudes' && !this.chatActivo) this.cargarConversaciones();
@@ -452,6 +459,26 @@ export class Home implements OnInit, OnDestroy {
     });
   }
 
+  cargarUsuariosComunidad() {
+    this.authService.getUsuarios().subscribe({
+      next: (data) => {
+        // Filtrar al usuario actual y solo activos
+        this.usuariosComunidad = data.filter(u => u.id_usuario !== this.userId && u.activo !== false);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error al cargar usuarios de comunidad', err);
+      }
+    });
+  }
+
+  chatearConUsuario(usuario: any) {
+    this.abrirChat({
+      id_usuario: usuario.id_usuario,
+      nombre_usuario: usuario.nombre || usuario.username
+    });
+  }
+
   abrirChat(obj: any) {
     // Si viene desde "Mensaje" en una publicación o comentario (no tiene id_conversacion)
     if (!obj.id_conversacion) {
@@ -486,7 +513,7 @@ export class Home implements OnInit, OnDestroy {
       const data = {
         id_usuario_inicio: this.userId,
         id_usuario_destino: targetUserId,
-        id_publicacion: obj.id_publicacion // esto funciona tanto si obj es pub o com
+        id_publicacion: obj.id_publicacion || null
       };
       
       this.chatService.iniciarConversacion(data).subscribe({
@@ -698,6 +725,10 @@ export class Home implements OnInit, OnDestroy {
         next: () => {
           this.messageService.add({severity:'success', summary:'Éxito', detail:'Publicación actualizada.'});
           this.displayEscribirDialog = false;
+          this.tituloHistoria = '';
+          this.contenidoHistoria = '';
+          this.categoriaSeleccionadaId = null;
+          this.editandoPublicacionId = null;
           this.cargarPublicaciones();
         },
         error: (err) => {
@@ -710,6 +741,10 @@ export class Home implements OnInit, OnDestroy {
         next: () => {
           this.messageService.add({severity:'success', summary:'Éxito', detail:'Publicación creada correctamente.'});
           this.displayEscribirDialog = false;
+          this.tituloHistoria = '';
+          this.contenidoHistoria = '';
+          this.categoriaSeleccionadaId = null;
+          this.editandoPublicacionId = null;
           this.cargarPublicaciones(); // Recargar el feed
         },
         error: (err) => {

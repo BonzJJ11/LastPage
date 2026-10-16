@@ -19,6 +19,10 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/register/`, userData);
   }
 
+  getUsuarios(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/usuarios/`);
+  }
+
   // Métodos para manejar el token (se guarda en localStorage)
   setToken(token: string): void {
     // Verificamos window para evitar errores con Server-Side Rendering (SSR)
