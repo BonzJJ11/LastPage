@@ -35,6 +35,15 @@ export class AuthService {
     return this.http.delete<any>(`${this.apiUrl}/usuarios/${id}/`);
   }
 
+  uploadAvatar(file: File, idUsuario?: number): Observable<any> {
+    const formData = new FormData();
+    formData.append('foto', file);
+    if (idUsuario) {
+      formData.append('id_usuario', idUsuario.toString());
+    }
+    return this.http.post<any>(`${this.apiUrl}/upload-avatar/`, formData);
+  }
+
   // Métodos para manejar el token (se guarda en localStorage)
   setToken(token: string): void {
     // Verificamos window para evitar errores con Server-Side Rendering (SSR)
@@ -51,8 +60,13 @@ export class AuthService {
   }
 
   logout(): void {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && window.localStorage) {
       localStorage.removeItem('token');
+      localStorage.removeItem('active_username');
+      localStorage.removeItem('user_role');
+      localStorage.removeItem('user_id');
+      localStorage.removeItem('user_photo');
+      localStorage.removeItem('active_nombre');
     }
   }
 

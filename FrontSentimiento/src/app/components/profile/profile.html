@@ -60,12 +60,13 @@
         <!-- AVATAR Y DETALLES -->
         <div class="hero-main-row">
           <div class="avatar-container">
+            <input type="file" #fileInputHero (change)="onFileSelected($event)" accept="image/png, image/jpeg, image/jpg, image/webp, image/gif" style="display: none;" />
             <div class="avatar-large" *ngIf="!usuario.foto_perfil">
               {{ usuario.username?.charAt(0).toUpperCase() }}
             </div>
             <img *ngIf="usuario.foto_perfil" [src]="usuario.foto_perfil" class="avatar-large-img" alt="Foto de perfil" />
             
-            <button class="btn-change-avatar" (click)="activeTab = 'editar'" pTooltip="Cambiar foto">
+            <button class="btn-change-avatar" (click)="fileInputHero.click()" pTooltip="Subir foto desde tus documentos">
               <i-lucide [img]="CameraIcon" size="16"></i-lucide>
             </button>
           </div>
@@ -75,8 +76,8 @@
               <h2>{{ usuario.nombre || usuario.username }}</h2>
               <div class="identity-badges">
                 <span class="username-handle">@{{ usuario.username }}</span>
-                <p-tag *ngIf="usuario.id_rol === 1 || usuario.id_rol?.id_rol === 1" value="Administrador" severity="success" icon="pi pi-shield"></p-tag>
-                <p-tag *ngIf="usuario.id_rol !== 1 && usuario.id_rol?.id_rol !== 1" value="Miembro" severity="info"></p-tag>
+                <p-tag *ngIf="usuario.id_rol === 2 || usuario.id_rol?.id_rol === 2" value="Administrador" severity="success" icon="pi pi-shield"></p-tag>
+                <p-tag *ngIf="usuario.id_rol !== 2 && usuario.id_rol?.id_rol !== 2" value="Miembro" severity="info"></p-tag>
               </div>
             </div>
 
@@ -217,26 +218,81 @@
               <div *ngIf="!editFotoPerfil" class="preview-initials">
                 {{ usuario.username?.charAt(0).toUpperCase() }}
               </div>
+              <button type="button" class="btn-clear-photo" *ngIf="editFotoPerfil" (click)="quitarFoto()" pTooltip="Quitar foto y usar inicial">
+                <i-lucide [img]="TrashIcon" size="13"></i-lucide> Quitar foto
+              </button>
             </div>
 
             <div class="avatar-picker-controls">
-              <span class="picker-help">Pega la URL de una foto o imagen web:</span>
-              <div class="input-with-button">
-                <input type="text" pInputText [(ngModel)]="editFotoPerfil" placeholder="https://ejemplo.com/mi-foto.jpg" class="input-url" />
-                <button class="btn-clear-avatar" *ngIf="editFotoPerfil" (click)="editFotoPerfil = ''" pTooltip="Quitar foto">
-                  <i-lucide [img]="XIcon" size="16"></i-lucide>
+              <!-- PESTAÑAS DE MÉTODO -->
+              <div class="method-selector-tabs">
+                <button type="button" class="method-tab" [class.active]="metodoAvatar === 'archivo'" (click)="metodoAvatar = 'archivo'">
+                  <i-lucide [img]="UploadIcon" size="15"></i-lucide> Subir desde mi equipo
+                </button>
+                <button type="button" class="method-tab" [class.active]="metodoAvatar === 'url'" (click)="metodoAvatar = 'url'">
+                  <i-lucide [img]="SparklesIcon" size="15"></i-lucide> Pegar enlace (URL)
+                </button>
+                <button type="button" class="method-tab" [class.active]="metodoAvatar === 'preset'" (click)="metodoAvatar = 'preset'">
+                  <i-lucide [img]="UserIcon" size="15"></i-lucide> Avatares sugeridos
                 </button>
               </div>
 
-              <!-- AVATARES PREDEFINIDOS -->
-              <span class="picker-help" style="margin-top: 10px;">O elige uno de nuestros avatares sugeridos:</span>
-              <div class="preset-avatars-row">
-                <img *ngFor="let av of avataresSugeridos" 
-                     [src]="av" 
-                     alt="Sugerido" 
-                     class="preset-avatar-thumb"
-                     [class.selected]="editFotoPerfil === av"
-                     (click)="seleccionarAvatar(av)" />
+              <!-- OPCIÓN 1: SUBIR ARCHIVO LOCAL (DROPZONE) -->
+              <div class="method-content" *ngIf="metodoAvatar === 'archivo'">
+                <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/png, image/jpeg, image/jpg, image/webp, image/gif" style="display: none;" />
+                
+                <div class="dropzone-box" 
+                     [class.dragging]="isDragging"
+                     [class.uploading]="subiendoFoto"
+                     (click)="fileInput.click()"
+                     (dragover)="onDragOver($event)"
+                     (dragleave)="onDragLeave($event)"
+                     (drop)="onDrop($event)">
+                  
+                  <div *ngIf="!subiendoFoto" class="dropzone-inner">
+                    <div class="dropzone-icon-circle">
+                      <i-lucide [img]="UploadIcon" size="22"></i-lucide>
+                    </div>
+                    <div class="dropzone-text">
+                      <span class="dropzone-primary-text"><strong>Haz clic para abrir el explorador de archivos</strong> o arrastra tu foto aquí</span>
+                      <span class="dropzone-hint">Formatos: JPG, PNG, WEBP, GIF • Tamaño máx: 5MB</span>
+                    </div>
+                  </div>
+
+                  <div *ngIf="subiendoFoto" class="dropzone-uploading">
+                    <i class="pi pi-spin pi-spinner" style="font-size: 1.8rem; color: #4CAF6B;"></i>
+                    <span>Subiendo y procesando imagen...</span>
+                  </div>
+                </div>
+
+                <div *ngIf="nombreArchivoSeleccionado" class="selected-file-badge">
+                  <i-lucide [img]="CheckIcon" size="14" style="color: #4CAF6B;"></i-lucide>
+                  <span>{{ nombreArchivoSeleccionado }} ({{ tamanoArchivoSeleccionado }})</span>
+                </div>
+              </div>
+
+              <!-- OPCIÓN 2: PEGAR URL -->
+              <div class="method-content" *ngIf="metodoAvatar === 'url'">
+                <span class="picker-help">Pega el enlace web directo a tu foto:</span>
+                <div class="input-with-button">
+                  <input type="text" pInputText [(ngModel)]="editFotoPerfil" placeholder="https://ejemplo.com/mi-foto.jpg" class="input-url" />
+                  <button type="button" class="btn-clear-avatar" *ngIf="editFotoPerfil" (click)="quitarFoto()" pTooltip="Quitar foto">
+                    <i-lucide [img]="XIcon" size="16"></i-lucide>
+                  </button>
+                </div>
+              </div>
+
+              <!-- OPCIÓN 3: AVATARES PREDEFINIDOS -->
+              <div class="method-content" *ngIf="metodoAvatar === 'preset'">
+                <span class="picker-help">Haz clic sobre un avatar sugerido para seleccionarlo:</span>
+                <div class="preset-avatars-row">
+                  <img *ngFor="let av of avataresSugeridos" 
+                       [src]="av" 
+                       alt="Sugerido" 
+                       class="preset-avatar-thumb"
+                       [class.selected]="editFotoPerfil === av"
+                       (click)="seleccionarAvatar(av)" />
+                </div>
               </div>
             </div>
           </div>

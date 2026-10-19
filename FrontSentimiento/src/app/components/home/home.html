@@ -211,9 +211,12 @@
               <!-- INFORMACIÓN AUTOR (Anónimo o Público) -->
               <div class="author-info">
                 <!-- Avatar -->
-                <div class="author-avatar" *ngIf="pub.visibilidad === 'PUBLICO'" style="background-color: #6A3FB1;">
-                  {{ pub.nombre_usuario ? pub.nombre_usuario.charAt(0).toUpperCase() : 'U' }}
-                </div>
+                <ng-container *ngIf="pub.visibilidad === 'PUBLICO'">
+                  <img *ngIf="pub.foto_perfil" [src]="pub.foto_perfil" class="author-avatar" style="object-fit: cover;" alt="Avatar" />
+                  <div class="author-avatar" *ngIf="!pub.foto_perfil" style="background-color: #6A3FB1;">
+                    {{ pub.nombre_usuario ? pub.nombre_usuario.charAt(0).toUpperCase() : 'U' }}
+                  </div>
+                </ng-container>
                 <div class="author-avatar anon" *ngIf="pub.visibilidad === 'ANONIMO'">
                   ?
                 </div>
@@ -356,8 +359,14 @@
               <div class="comment-list">
                 <div class="comment-item" *ngFor="let com of pub.comentariosList; trackBy: trackByComId">
                   <!-- Avatar del comentario -->
-                  <div class="comment-avatar" [class.anon]="com.visibilidad === 'ANONIMO'">
-                    {{ com.visibilidad === 'ANONIMO' ? '?' : (com.nombre_usuario ? com.nombre_usuario.charAt(0).toUpperCase() : 'U') }}
+                  <ng-container *ngIf="com.visibilidad === 'PUBLICO'">
+                    <img *ngIf="com.foto_perfil" [src]="com.foto_perfil" class="comment-avatar" style="object-fit: cover;" alt="Avatar" />
+                    <div class="comment-avatar" *ngIf="!com.foto_perfil">
+                      {{ com.nombre_usuario ? com.nombre_usuario.charAt(0).toUpperCase() : 'U' }}
+                    </div>
+                  </ng-container>
+                  <div class="comment-avatar anon" *ngIf="com.visibilidad === 'ANONIMO'">
+                    ?
                   </div>
                   <div class="comment-body">
                     <div class="comment-author">
@@ -423,9 +432,12 @@
           <div class="post-card" *ngFor="let pub of publicacionesGuardadas">
             <div class="post-header">
               <div class="author-info">
-                <div class="author-avatar" *ngIf="pub.visibilidad === 'PUBLICO'" style="background-color: #6A3FB1;">
-                  {{ pub.nombre_usuario ? pub.nombre_usuario.charAt(0).toUpperCase() : 'U' }}
-                </div>
+                <ng-container *ngIf="pub.visibilidad === 'PUBLICO'">
+                  <img *ngIf="pub.foto_perfil" [src]="pub.foto_perfil" class="author-avatar" style="object-fit: cover;" alt="Avatar" />
+                  <div class="author-avatar" *ngIf="!pub.foto_perfil" style="background-color: #6A3FB1;">
+                    {{ pub.nombre_usuario ? pub.nombre_usuario.charAt(0).toUpperCase() : 'U' }}
+                  </div>
+                </ng-container>
                 <div class="author-avatar anon" *ngIf="pub.visibilidad === 'ANONIMO'">?</div>
                 
                 <div class="author-details">
@@ -459,7 +471,8 @@
           <div class="conversacion-list">
             <div class="post-card" *ngFor="let conv of conversacionesPendientes" style="display: flex; justify-content: space-between; align-items: center; padding: 15px; transition: background 0.2s;" onmouseover="this.style.background='#f9f9f9'" onmouseout="this.style.background='#fff'">
               <div style="display: flex; gap: 15px; align-items: center;">
-                <div class="author-avatar" [ngClass]="{'anon': conv.nombre_mostrar.includes('Anónimo')}">
+                <img *ngIf="conv.foto_mostrar && !conv.nombre_mostrar.includes('Anónimo')" [src]="conv.foto_mostrar" class="author-avatar" style="object-fit: cover;" alt="Avatar" />
+                <div *ngIf="!conv.foto_mostrar || conv.nombre_mostrar.includes('Anónimo')" class="author-avatar" [ngClass]="{'anon': conv.nombre_mostrar.includes('Anónimo')}">
                   {{ conv.nombre_mostrar.includes('Anónimo') ? '?' : conv.nombre_mostrar.charAt(0).toUpperCase() }}
                 </div>
                 <div>
@@ -533,7 +546,8 @@
           </div>
           <div class="user-item" *ngFor="let u of usuariosComunidad">
             <div class="user-item-info">
-              <div class="user-avatar" style="background-color: #4CAF6B;">
+              <img *ngIf="u.foto_perfil" [src]="u.foto_perfil" class="user-avatar" style="object-fit: cover;" alt="Avatar" />
+              <div *ngIf="!u.foto_perfil" class="user-avatar" style="background-color: #4CAF6B;">
                 {{ (u.nombre || u.username).charAt(0).toUpperCase() }}
               </div>
               <div class="user-item-text">
@@ -561,7 +575,8 @@
     <ng-template pTemplate="header">
       <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-start;">
         <div class="dialog-user-info">
-          <div class="avatar" style="width: 40px; height: 40px;">{{ activeUsername.charAt(0).toUpperCase() }}</div>
+          <img *ngIf="currentUserPhoto && visibilidadPublicacion !== 'ANONIMO'" [src]="currentUserPhoto" class="avatar" style="width: 40px; height: 40px; object-fit: cover;" alt="Avatar" />
+          <div class="avatar" style="width: 40px; height: 40px;" *ngIf="!currentUserPhoto || visibilidadPublicacion === 'ANONIMO'">{{ visibilidadPublicacion === 'ANONIMO' ? '?' : (activeUsername || 'U').charAt(0).toUpperCase() }}</div>
           <div>
             <div style="font-weight: 600; font-size: 0.95rem;">@{{ activeUsername }}</div>
             <div class="dialog-anon-badge" (click)="toggleAnonimo()" style="cursor: pointer; transition: all 0.2s; user-select: none;" [ngStyle]="{'background-color': visibilidadPublicacion === 'ANONIMO' ? '#E7DDF9' : '#edf7f0', 'color': visibilidadPublicacion === 'ANONIMO' ? '#6A3FB1' : '#4CAF6B'}">
@@ -632,7 +647,8 @@
            (click)="abrirChat(conv); opChats.hide()" 
            style="padding: 12px 15px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: background 0.2s;"
            onmouseover="this.style.background='#f9f9f9'" onmouseout="this.style.background='#fff'">
-        <div class="author-avatar" [ngClass]="{'anon': conv.nombre_mostrar.includes('Anónimo')}" style="width: 45px; height: 45px; font-size: 1.2rem; background-color: #6A3FB1;">
+        <img *ngIf="conv.foto_mostrar && !conv.nombre_mostrar.includes('Anónimo')" [src]="conv.foto_mostrar" class="author-avatar" style="width: 45px; height: 45px; object-fit: cover;" alt="Avatar" />
+        <div *ngIf="!conv.foto_mostrar || conv.nombre_mostrar.includes('Anónimo')" class="author-avatar" [ngClass]="{'anon': conv.nombre_mostrar.includes('Anónimo')}" style="width: 45px; height: 45px; font-size: 1.2rem; background-color: #6A3FB1;">
           {{ conv.nombre_mostrar.includes('Anónimo') ? '?' : conv.nombre_mostrar.charAt(0).toUpperCase() }}
         </div>
         <div style="flex: 1;">
@@ -701,7 +717,8 @@
   <div class="chat-window" *ngIf="chatActivo && conversacionActiva">
     <div class="chat-header">
       <div class="chat-header-info">
-        <div class="chat-avatar" [ngClass]="{'anon': conversacionActiva.nombre_mostrar.includes('Anónimo')}">
+        <img *ngIf="conversacionActiva.foto_mostrar && !conversacionActiva.nombre_mostrar.includes('Anónimo')" [src]="conversacionActiva.foto_mostrar" class="chat-avatar" style="object-fit: cover;" alt="Avatar" />
+        <div *ngIf="!conversacionActiva.foto_mostrar || conversacionActiva.nombre_mostrar.includes('Anónimo')" class="chat-avatar" [ngClass]="{'anon': conversacionActiva.nombre_mostrar.includes('Anónimo')}">
           {{ conversacionActiva.nombre_mostrar.includes('Anónimo') ? '?' : conversacionActiva.nombre_mostrar.charAt(0).toUpperCase() }}
         </div>
         <div>

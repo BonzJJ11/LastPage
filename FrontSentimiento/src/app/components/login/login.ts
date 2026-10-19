@@ -81,6 +81,12 @@ export class Login implements OnInit {
           
           // Guardamos el usuario activo en localStorage para mostrarlo en el Home
           if (typeof window !== 'undefined' && window.localStorage) {
+            // Limpiar datos previos de sesión para no mezclar fotos/datos entre usuarios
+            localStorage.removeItem('user_photo');
+            localStorage.removeItem('active_nombre');
+            localStorage.removeItem('user_role');
+            localStorage.removeItem('user_id');
+
             localStorage.setItem('active_username', this.username);
             if (respuesta && respuesta.id_rol) {
               localStorage.setItem('user_role', respuesta.id_rol.toString());

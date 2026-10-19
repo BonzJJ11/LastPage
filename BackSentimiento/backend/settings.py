@@ -128,5 +128,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Media files (Archivos subidos por los usuarios: Avatares, fotos)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # CORS Configuration
 CORS_ALLOW_ALL_ORIGINS = True # Para desarrollo, permitir acceso desde el frontend en localhost:4200

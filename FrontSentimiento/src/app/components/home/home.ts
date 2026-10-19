@@ -163,9 +163,7 @@ export class Home implements OnInit, OnDestroy {
       }
 
       const photo = localStorage.getItem('user_photo');
-      if (photo) {
-        this.currentUserPhoto = photo;
-      }
+      this.currentUserPhoto = photo || '';
 
       const idUser = localStorage.getItem('user_id');
       if (idUser && !isNaN(parseInt(idUser))) {
@@ -174,13 +172,20 @@ export class Home implements OnInit, OnDestroy {
         this.authService.getUsuario(this.userId).subscribe({
           next: (user) => {
             if (user) {
+              this.currentUserPhoto = user.foto_perfil || '';
               if (user.foto_perfil) {
-                this.currentUserPhoto = user.foto_perfil;
                 localStorage.setItem('user_photo', user.foto_perfil);
+              } else {
+                localStorage.removeItem('user_photo');
               }
               if (user.username) {
                 this.activeUsername = user.username;
                 localStorage.setItem('active_username', user.username);
+              }
+              if (user.nombre) {
+                localStorage.setItem('active_nombre', user.nombre);
+              } else {
+                localStorage.removeItem('active_nombre');
               }
               this.cdr.detectChanges();
             }
@@ -194,9 +199,16 @@ export class Home implements OnInit, OnDestroy {
             if (found && found.id_usuario) {
               this.userId = found.id_usuario;
               localStorage.setItem('user_id', String(found.id_usuario));
+              this.currentUserPhoto = found.foto_perfil || '';
               if (found.foto_perfil) {
-                this.currentUserPhoto = found.foto_perfil;
                 localStorage.setItem('user_photo', found.foto_perfil);
+              } else {
+                localStorage.removeItem('user_photo');
+              }
+              if (found.nombre) {
+                localStorage.setItem('active_nombre', found.nombre);
+              } else {
+                localStorage.removeItem('active_nombre');
               }
               this.cargarGuardadosNoVistos();
               this.cdr.detectChanges();
@@ -885,6 +897,7 @@ export class Home implements OnInit, OnDestroy {
       contenido,
       visibilidad,
       nombre_usuario: visibilidad === 'ANONIMO' ? 'Anónimo' : this.activeUsername,
+      foto_perfil: visibilidad === 'ANONIMO' ? null : this.currentUserPhoto,
       _enviando: true  // marca para saber que está en vuelo
     };
     if (!pub.comentariosList) pub.comentariosList = [];
@@ -930,14 +943,10 @@ export class Home implements OnInit, OnDestroy {
   }
 
   cerrarSesion() {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('active_username');
-      localStorage.removeItem('user_role');
-      localStorage.removeItem('user_id');
-      localStorage.removeItem('user_photo');
-      localStorage.removeItem('active_nombre');
-    }
+    this.authService.logout();
+    this.currentUserPhoto = '';
+    this.activeUsername = '';
+    this.userId = null;
     this.router.navigate(['/login']);
   }
 }

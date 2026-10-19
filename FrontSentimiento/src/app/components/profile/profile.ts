@@ -33,7 +33,8 @@ import {
   Lock, 
   Shield,
   MessageSquare,
-  Share2
+  Share2,
+  Upload
 } from 'lucide-angular';
 import { AuthService } from '../../core/servicios/auth.service';
 import { PublicacionService } from '../../core/servicios/publicacion.service';
@@ -118,6 +119,15 @@ export class Profile implements OnInit {
   readonly ShieldIcon = Shield;
   readonly MessageSquareIcon = MessageSquare;
   readonly ShareIcon = Share2;
+  readonly UploadIcon = Upload;
+
+  // Carga de fotos desde explorador de archivos
+  subiendoFoto = false;
+  archivoSeleccionado: File | null = null;
+  nombreArchivoSeleccionado = '';
+  tamanoArchivoSeleccionado = '';
+  isDragging = false;
+  metodoAvatar: 'archivo' | 'url' | 'preset' = 'archivo';
 
   constructor(
     private router: Router,
@@ -188,7 +198,11 @@ export class Profile implements OnInit {
         this.loading = false;
 
         if (typeof window !== 'undefined' && window.localStorage) {
-          if (data.foto_perfil) localStorage.setItem('user_photo', data.foto_perfil);
+          if (data.foto_perfil) {
+            localStorage.setItem('user_photo', data.foto_perfil);
+          } else {
+            localStorage.removeItem('user_photo');
+          }
           if (data.username) localStorage.setItem('active_username', data.username);
         }
 
@@ -231,6 +245,131 @@ export class Profile implements OnInit {
 
   seleccionarAvatar(url: string): void {
     this.editFotoPerfil = url;
+    this.archivoSeleccionado = null;
+    this.nombreArchivoSeleccionado = '';
+    this.tamanoArchivoSeleccionado = '';
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.procesarArchivo(input.files[0]);
+    }
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging = false;
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging = false;
+    if (event.dataTransfer && event.dataTransfer.files.length > 0) {
+      this.procesarArchivo(event.dataTransfer.files[0]);
+    }
+  }
+
+  procesarArchivo(file: File): void {
+    // 1. Validar formato permitido
+    const tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/jpg'];
+    if (!tiposPermitidos.includes(file.type)) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Formato no soportado',
+        detail: 'Por favor selecciona un archivo de imagen (JPG, PNG, WEBP o GIF).'
+      });
+      return;
+    }
+
+    // 2. Validar tamaño (máximo 5MB)
+    const maxMb = 5;
+    if (file.size > maxMb * 1024 * 1024) {
+      const tamMb = (file.size / (1024 * 1024)).toFixed(1);
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Imagen muy pesada',
+        detail: `Tu archivo pesa ${tamMb}MB. El tamaño máximo permitido es de ${maxMb}MB.`
+      });
+      return;
+    }
+
+    this.archivoSeleccionado = file;
+    this.nombreArchivoSeleccionado = file.name;
+    this.tamanoArchivoSeleccionado = (file.size / 1024).toFixed(1) + ' KB';
+
+    // 3. Previsualización instantánea antes de subir
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.editFotoPerfil = e.target?.result as string;
+      this.cdr.detectChanges();
+    };
+    reader.readAsDataURL(file);
+
+    // 4. Subida directa al servidor
+    this.subiendoFoto = true;
+    this.authService.uploadAvatar(file, this.userId ?? undefined).subscribe({
+      next: (res) => {
+        this.subiendoFoto = false;
+        this.editFotoPerfil = res.url;
+        if (this.usuario) {
+          this.usuario.foto_perfil = res.url;
+        }
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.setItem('user_photo', res.url);
+        }
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Foto cargada',
+          detail: 'Tu imagen ha sido subida y guardada exitosamente.'
+        });
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.subiendoFoto = false;
+        console.error('Error al subir avatar:', err);
+        const msg = err.error?.error || 'No se pudo subir la imagen al servidor.';
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error de subida',
+          detail: msg
+        });
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  quitarFoto(): void {
+    this.editFotoPerfil = '';
+    this.archivoSeleccionado = null;
+    this.nombreArchivoSeleccionado = '';
+    this.tamanoArchivoSeleccionado = '';
+    if (this.usuario) {
+      this.usuario.foto_perfil = '';
+    }
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.removeItem('user_photo');
+    }
+    if (this.userId) {
+      this.authService.updateUsuario(this.userId, { foto_perfil: '' }).subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'info',
+            summary: 'Foto eliminada',
+            detail: 'Se ha restablecido tu avatar predeterminado.'
+          });
+          this.cdr.detectChanges();
+        }
+      });
+    }
   }
 
   guardarPerfil(): void {
@@ -372,12 +511,7 @@ export class Profile implements OnInit {
         this.displayDeleteDialog = false;
 
         // Limpiar sesión local
-        if (typeof window !== 'undefined' && window.localStorage) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('active_username');
-          localStorage.removeItem('user_role');
-          localStorage.removeItem('user_id');
-        }
+        this.authService.logout();
 
         this.messageService.add({
           severity: 'info',
@@ -411,12 +545,7 @@ export class Profile implements OnInit {
   }
 
   cerrarSesion(): void {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('active_username');
-      localStorage.removeItem('user_role');
-      localStorage.removeItem('user_id');
-    }
+    this.authService.logout();
     this.router.navigate(['/login']);
   }
 

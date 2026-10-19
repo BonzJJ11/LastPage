@@ -10,7 +10,9 @@ class CategoriaSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class PublicacionSerializer(serializers.ModelSerializer):
-    nombre_usuario = serializers.CharField(source='id_usuario.nombre', read_only=True)
+    nombre_usuario = serializers.SerializerMethodField()
+    foto_perfil = serializers.SerializerMethodField()
+    username = serializers.SerializerMethodField()
     nombre_categoria = serializers.CharField(source='id_categoria.nombre_categoria', read_only=True)
     comentarios_count = serializers.SerializerMethodField()
     reacciones_resumen = serializers.SerializerMethodField()
@@ -22,6 +24,23 @@ class PublicacionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Publicacion
         fields = '__all__'
+
+    def get_foto_perfil(self, obj):
+        if obj.visibilidad == 'ANONIMO':
+            return None
+        return obj.id_usuario.foto_perfil if obj.id_usuario else None
+
+    def get_username(self, obj):
+        if obj.visibilidad == 'ANONIMO':
+            return None
+        return obj.id_usuario.username if obj.id_usuario else None
+
+    def get_nombre_usuario(self, obj):
+        if obj.visibilidad == 'ANONIMO':
+            return 'Usuario anónimo'
+        if obj.id_usuario:
+            return obj.id_usuario.nombre or obj.id_usuario.username
+        return 'Usuario'
 
     def get_comentarios_count(self, obj):
         return obj.comentario_set.count() if hasattr(obj, 'comentario_set') else 0
@@ -113,7 +132,9 @@ class ComentarioSerializer(serializers.ModelSerializer):
     def get_nombre_usuario(self, obj):
         if obj.visibilidad == 'ANONIMO':
             return "Usuario Anónimo"
-        return obj.id_usuario.nombre if obj.id_usuario else None
+        if obj.id_usuario:
+            return obj.id_usuario.nombre or obj.id_usuario.username
+        return "Usuario"
 
     def get_foto_perfil(self, obj):
         if obj.visibilidad == 'ANONIMO':
@@ -150,12 +171,16 @@ class ConversacionSerializer(serializers.ModelSerializer):
     def get_nombre_inicio(self, obj):
         if self.is_anonymous(obj):
             return "Usuario Anónimo"
-        return obj.id_usuario_inicio.nombre if obj.id_usuario_inicio else None
+        if obj.id_usuario_inicio:
+            return obj.id_usuario_inicio.nombre or obj.id_usuario_inicio.username
+        return None
 
     def get_nombre_destino(self, obj):
         if self.is_anonymous(obj):
             return "Autor Anónimo"
-        return obj.id_usuario_destino.nombre if obj.id_usuario_destino else None
+        if obj.id_usuario_destino:
+            return obj.id_usuario_destino.nombre or obj.id_usuario_destino.username
+        return None
 
     def get_foto_inicio(self, obj):
         if self.is_anonymous(obj):

@@ -227,3 +227,61 @@ def login_view(request):
             
     except Usuario.DoesNotExist:
         return Response({'error': 'El usuario no existe'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+import os
+import uuid
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
+
+@api_view(['POST'])
+def upload_avatar(request):
+    archivo = request.FILES.get('foto') or request.FILES.get('avatar') or request.FILES.get('file')
+    if not archivo:
+        return Response({'error': 'No se seleccionó ningún archivo de imagen.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 1. Validación de extensiones y tipos MIME permitidos
+    extensiones_validas = ['.jpg', '.jpeg', '.png', '.webp', '.gif']
+    nombre_orig = archivo.name.lower()
+    ext = os.path.splitext(nombre_orig)[1]
+    
+    if ext not in extensiones_validas:
+        return Response({
+            'error': f'Formato no permitido ({ext}). Solo se admiten imágenes JPG, JPEG, PNG, WEBP o GIF.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    # 2. Validación de tamaño máximo (5MB)
+    max_mb = 5
+    if archivo.size > max_mb * 1024 * 1024:
+        peso_mb = round(archivo.size / (1024 * 1024), 2)
+        return Response({
+            'error': f'La imagen pesa {peso_mb}MB. El tamaño máximo permitido es de {max_mb}MB.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    # 3. Guardar en carpeta media/avatars
+    carpeta_avatars = os.path.join(settings.MEDIA_ROOT, 'avatars')
+    os.makedirs(carpeta_avatars, exist_ok=True)
+    fs = FileSystemStorage(location=carpeta_avatars, base_url='/media/avatars/')
+
+    # Generar nombre único para evitar colisiones
+    nombre_seguro = f"avatar_{uuid.uuid4().hex[:12]}{ext}"
+    nombre_guardado = fs.save(nombre_seguro, archivo)
+    url_relativa = fs.url(nombre_guardado)
+    url_completa = request.build_absolute_uri(url_relativa)
+
+    # 4. Si se envió el id_usuario, actualizarlo en la base de datos de una vez
+    id_usuario = request.data.get('id_usuario')
+    if id_usuario:
+        try:
+            usuario = Usuario.objects.get(id_usuario=id_usuario)
+            usuario.foto_perfil = url_completa
+            usuario.save(update_fields=['foto_perfil'])
+        except Usuario.DoesNotExist:
+            pass
+
+    return Response({
+        'mensaje': 'Foto subida exitosamente',
+        'url': url_completa,
+        'nombre_archivo': archivo.name,
+        'tamano_kb': round(archivo.size / 1024, 1)
+    }, status=status.HTTP_201_CREATED)
