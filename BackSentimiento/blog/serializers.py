@@ -28,10 +28,14 @@ class PublicacionSerializer(serializers.ModelSerializer):
     def get_foto_perfil(self, obj):
         if obj.visibilidad == 'ANONIMO':
             return None
+        if obj.id_usuario and not obj.id_usuario.activo:
+            return None
         return obj.id_usuario.foto_perfil if obj.id_usuario else None
 
     def get_username(self, obj):
         if obj.visibilidad == 'ANONIMO':
+            return None
+        if obj.id_usuario and not obj.id_usuario.activo:
             return None
         return obj.id_usuario.username if obj.id_usuario else None
 
@@ -39,8 +43,10 @@ class PublicacionSerializer(serializers.ModelSerializer):
         if obj.visibilidad == 'ANONIMO':
             return 'Usuario anónimo'
         if obj.id_usuario:
+            if not obj.id_usuario.activo:
+                return 'Usuario eliminado'
             return obj.id_usuario.nombre or obj.id_usuario.username
-        return 'Usuario'
+        return 'Usuario eliminado'
 
     def get_comentarios_count(self, obj):
         return obj.comentario_set.count() if hasattr(obj, 'comentario_set') else 0
@@ -48,7 +54,7 @@ class PublicacionSerializer(serializers.ModelSerializer):
     def get_reacciones_resumen(self, obj):
         if not hasattr(obj, 'reaccion_set'):
             return {}
-        reacciones = obj.reaccion_set.all()
+        reacciones = obj.reaccion_set.filter(id_usuario__activo=True)
         from collections import Counter
         conteo = Counter(r.tipo_reaccion for r in reacciones)
         return dict(conteo)
@@ -58,7 +64,7 @@ class PublicacionSerializer(serializers.ModelSerializer):
         if not hasattr(obj, 'reaccion_set'):
             return {}
         resultado = {}
-        for reaccion in obj.reaccion_set.select_related('id_usuario').all():
+        for reaccion in obj.reaccion_set.filter(id_usuario__activo=True).select_related('id_usuario'):
             tipo = reaccion.tipo_reaccion
             nombre = reaccion.id_usuario.nombre if reaccion.id_usuario else 'Usuario'
             if tipo not in resultado:
@@ -133,11 +139,15 @@ class ComentarioSerializer(serializers.ModelSerializer):
         if obj.visibilidad == 'ANONIMO':
             return "Usuario Anónimo"
         if obj.id_usuario:
+            if not obj.id_usuario.activo:
+                return "Usuario eliminado"
             return obj.id_usuario.nombre or obj.id_usuario.username
-        return "Usuario"
+        return "Usuario eliminado"
 
     def get_foto_perfil(self, obj):
         if obj.visibilidad == 'ANONIMO':
+            return None
+        if obj.id_usuario and not obj.id_usuario.activo:
             return None
         return obj.id_usuario.foto_perfil if obj.id_usuario else None
 

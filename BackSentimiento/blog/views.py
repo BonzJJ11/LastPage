@@ -69,27 +69,31 @@ class UsuarioViewSet(viewsets.ModelViewSet):
 
         return Response({'mensaje': 'Contraseña actualizada correctamente.'}, status=status.HTTP_200_OK)
 
-    def perform_destroy(self, instance):
-        # Limpieza previa para respetar integridad referencial en PostgreSQL
-        Mensaje.objects.filter(id_usuario=instance).delete()
-        Conversacion.objects.filter(Q(id_usuario_inicio=instance) | Q(id_usuario_destino=instance)).delete()
-        Reporte.objects.filter(id_usuario=instance).delete()
-        Notificacion.objects.filter(id_usuario=instance).delete()
-        Guardado.objects.filter(id_usuario=instance).delete()
-        Reaccion.objects.filter(id_usuario=instance).delete()
-        Comentario.objects.filter(id_usuario=instance).delete()
-        
-        # Limpiar dependencias de las publicaciones que pertenecen al usuario
-        pubs = Publicacion.objects.filter(id_usuario=instance)
-        Mensaje.objects.filter(id_conversacion__id_publicacion__in=pubs).delete()
-        Conversacion.objects.filter(id_publicacion__in=pubs).delete()
-        Reporte.objects.filter(id_publicacion__in=pubs).delete()
-        Guardado.objects.filter(id_publicacion__in=pubs).delete()
-        Reaccion.objects.filter(id_publicacion__in=pubs).delete()
-        Comentario.objects.filter(id_publicacion__in=pubs).delete()
-        pubs.delete()
+    @action(detail=True, methods=['post'], url_path='eliminar-cuenta')
+    def eliminar_cuenta(self, request, pk=None):
+        usuario = self.get_object()
+        password = request.data.get('password')
 
-        instance.delete()
+        if not password:
+            return Response({'error': 'Debes ingresar tu contraseña para confirmar la eliminación.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not (check_password(password, usuario.password) or password == usuario.password):
+            return Response({'error': 'La contraseña ingresada es incorrecta.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Borrado lógico: se conserva el registro en la BD pero pasa a activo = False
+        usuario.activo = False
+        usuario.save(update_fields=['activo'])
+
+        # Eliminar reacciones y guardados para no dejar registro en publicaciones de otros
+        Reaccion.objects.filter(id_usuario=usuario).delete()
+        Guardado.objects.filter(id_usuario=usuario).delete()
+
+        return Response({'mensaje': 'Cuenta eliminada exitosamente.'}, status=status.HTTP_200_OK)
+
+    def perform_destroy(self, instance):
+        # Borrado lógico: desactivar el usuario en lugar de eliminarlo físicamente
+        instance.activo = False
+        instance.save(update_fields=['activo'])
 
 class ComentarioViewSet(viewsets.ModelViewSet):
     queryset = Comentario.objects.all().order_by('fecha_comentario')
@@ -117,7 +121,7 @@ class ReaccionViewSet(viewsets.ModelViewSet):
     serializer_class = ReaccionSerializer
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().filter(id_usuario__activo=True)
         publicacion_id = self.request.query_params.get('id_publicacion', None)
         usuario_id = self.request.query_params.get('id_usuario', None)
         if publicacion_id is not None:

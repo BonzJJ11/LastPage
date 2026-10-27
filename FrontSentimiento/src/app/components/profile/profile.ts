@@ -88,7 +88,7 @@ export class Profile implements OnInit {
 
   // Eliminación de cuenta
   displayDeleteDialog = false;
-  confirmacionUsername = '';
+  confirmacionPassword = '';
   isDeleting = false;
 
   // Avatares predefinidos sugeridos
@@ -527,24 +527,24 @@ export class Profile implements OnInit {
   }
 
   abrirDialogoEliminar(): void {
-    this.confirmacionUsername = '';
+    this.confirmacionPassword = '';
     this.displayDeleteDialog = true;
   }
 
   confirmarEliminarCuenta(): void {
     if (!this.userId || !this.usuario) return;
 
-    if (this.confirmacionUsername.trim().toLowerCase() !== this.usuario.username.toLowerCase()) {
+    if (!this.confirmacionPassword) {
       this.messageService.add({
-        severity: 'error',
-        summary: 'Verificación fallida',
-        detail: 'El nombre de usuario escrito no coincide.'
+        severity: 'warn',
+        summary: 'Campo requerido',
+        detail: 'Debes ingresar tu contraseña para confirmar la eliminación.'
       });
       return;
     }
 
     this.isDeleting = true;
-    this.authService.deleteUsuario(this.userId).subscribe({
+    this.authService.eliminarCuenta(this.userId, this.confirmacionPassword).subscribe({
       next: () => {
         this.isDeleting = false;
         this.displayDeleteDialog = false;
@@ -564,11 +564,11 @@ export class Profile implements OnInit {
       },
       error: (err) => {
         this.isDeleting = false;
-        console.error('Error al eliminar cuenta:', err);
+        const msg = err.error?.error || err.error?.detail || 'No se pudo eliminar la cuenta. Verifica que tu contraseña sea la correcta.';
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo eliminar la cuenta. Intenta nuevamente.'
+          detail: msg
         });
         this.cdr.detectChanges();
       }

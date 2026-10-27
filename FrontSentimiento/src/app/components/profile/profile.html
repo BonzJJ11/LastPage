@@ -369,9 +369,9 @@
               [(ngModel)]="passwordActual"
               [toggleMask]="true"
               [feedback]="false"
-              placeholder="Ingresa tu contraseña actual"
+              placeholder="••••••••"
               styleClass="w-full p-password-fluid"
-              inputStyleClass="w-full input-field-pass"
+              inputStyleClass="w-full"
             ></p-password>
             <span class="field-hint">Es necesario verificar tu contraseña actual antes de establecer una nueva.</span>
           </div>
@@ -387,13 +387,13 @@
                 [(ngModel)]="nuevaPassword"
                 [toggleMask]="true"
                 [feedback]="true"
-                placeholder="Mínimo 6 caracteres" 
+                placeholder="••••••••" 
                 promptLabel="Ingresa tu nueva contraseña"
                 weakLabel="Débil"
                 mediumLabel="Media"
                 strongLabel="Fuerte"
                 styleClass="w-full p-password-fluid"
-                inputStyleClass="w-full input-field-pass"
+                inputStyleClass="w-full"
               ></p-password>
 
               <!-- Feedback visual de la nueva contraseña -->
@@ -417,9 +417,9 @@
                 [(ngModel)]="confirmarPassword"
                 [toggleMask]="true"
                 [feedback]="false"
-                placeholder="Repite tu nueva contraseña" 
+                placeholder="••••••••" 
                 styleClass="w-full p-password-fluid"
-                inputStyleClass="w-full input-field-pass"
+                inputStyleClass="w-full"
               ></p-password>
 
               <!-- Feedback visual de confirmación -->
@@ -505,13 +505,16 @@
       </p>
 
       <div class="confirmation-input-box">
-        <label for="confUser">Para confirmar, escribe tu nombre de usuario <strong>@{{ usuario.username }}</strong> a continuación:</label>
-        <input id="confUser" 
-               type="text" 
-               pInputText 
-               [(ngModel)]="confirmacionUsername" 
-               placeholder="{{ usuario.username }}" 
-               class="input-confirm" />
+        <label for="confDeletePass">Para confirmar, ingresa tu <strong>contraseña</strong> a continuación:</label>
+        <p-password 
+          id="confDeletePass" 
+          [(ngModel)]="confirmacionPassword" 
+          [toggleMask]="true" 
+          [feedback]="false" 
+          placeholder="Tu contraseña" 
+          styleClass="w-full p-password-fluid" 
+          inputStyleClass="w-full input-confirm"
+        ></p-password>
       </div>
     </div>
 
@@ -520,7 +523,7 @@
         <p-button label="Cancelar" styleClass="p-button-text" (onClick)="displayDeleteDialog = false"></p-button>
         <p-button label="Sí, eliminar definitivamente" 
                   styleClass="btn-confirm-delete" 
-                  [disabled]="!usuario || confirmacionUsername.trim().toLowerCase() !== usuario.username.toLowerCase()" 
+                  [disabled]="!confirmacionPassword" 
                   [loading]="isDeleting" 
                   (onClick)="confirmarEliminarCuenta()">
         </p-button>

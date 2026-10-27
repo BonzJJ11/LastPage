@@ -39,6 +39,10 @@ export class AuthService {
     return this.http.delete<any>(`${this.apiUrl}/usuarios/${id}/`);
   }
 
+  eliminarCuenta(id: number, password: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/usuarios/${id}/eliminar-cuenta/`, { password });
+  }
+
   uploadAvatar(file: File, idUsuario?: number): Observable<any> {
     const formData = new FormData();
     formData.append('foto', file);
