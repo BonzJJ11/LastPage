@@ -7,3 +7,16 @@ body, html {
   height: 100%;
   font-family: 'Poppins', 'Inter', sans-serif;
 }
+
+/* Prevenir deformación vertical de tooltips de PrimeNG */
+.p-tooltip {
+  white-space: nowrap !important;
+  max-width: 250px !important;
+  z-index: 1200 !important;
+}
+
+.p-tooltip .p-tooltip-text {
+  white-space: nowrap !important;
+  word-break: normal !important;
+}
+

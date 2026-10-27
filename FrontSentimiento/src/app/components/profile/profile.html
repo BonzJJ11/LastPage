@@ -25,11 +25,10 @@
         <span class="pill-username">@{{ usuario.username }}</span>
       </div>
 
-      <p-button styleClass="btn-logout-nav p-button-text p-button-rounded" (onClick)="cerrarSesion()" pTooltip="Cerrar sesión">
-        <ng-template pTemplate="icon">
-          <i-lucide [img]="LogOutIcon" size="18"></i-lucide>
-        </ng-template>
-      </p-button>
+      <button class="btn-logout-nav" (click)="cerrarSesion()" type="button">
+        <i-lucide [img]="LogOutIcon" size="18"></i-lucide>
+        <span>Cerrar sesión</span>
+      </button>
     </div>
   </header>
 
