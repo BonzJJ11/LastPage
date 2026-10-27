@@ -347,29 +347,103 @@
       <!-- CAMBIO DE CONTRASEÑA -->
       <div class="form-card security-card">
         <div class="form-header">
-          <h3>Seguridad de la Cuenta</h3>
-          <p>Actualiza tu contraseña para mantener protegida tu cuenta.</p>
-        </div>
-
-        <div class="form-row-2">
-          <div class="form-group">
-            <label class="form-label" for="newPass">Nueva Contraseña</label>
-            <input id="newPass" type="password" pInputText [(ngModel)]="nuevaPassword" placeholder="Mínimo 6 caracteres" class="input-field" />
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="confPass">Confirmar Nueva Contraseña</label>
-            <input id="confPass" type="password" pInputText [(ngModel)]="confirmarPassword" placeholder="Repite tu nueva contraseña" class="input-field" />
+          <div class="security-title-wrap">
+            <div class="security-badge-icon">
+              <i-lucide [img]="LockIcon" size="20"></i-lucide>
+            </div>
+            <div>
+              <h3>Seguridad de la Cuenta</h3>
+              <p>Actualiza tu contraseña para mantener protegida tu cuenta.</p>
+            </div>
           </div>
         </div>
 
-        <div class="form-footer" style="margin-top: 1rem;">
-          <p-button label="Actualizar Contraseña" 
-                    styleClass="btn-secondary-action" 
-                    [disabled]="!nuevaPassword || nuevaPassword !== confirmarPassword" 
-                    [loading]="guardando" 
-                    (onClick)="cambiarPassword()">
-          </p-button>
+        <div class="password-form-grid">
+          <!-- CONTRASEÑA ACTUAL -->
+          <div class="form-group current-pass-group">
+            <label class="form-label" for="currentPass">
+              Contraseña Actual <span class="required-star">*</span>
+            </label>
+            <p-password 
+              id="currentPass"
+              [(ngModel)]="passwordActual"
+              [toggleMask]="true"
+              [feedback]="false"
+              placeholder="Ingresa tu contraseña actual"
+              styleClass="w-full p-password-fluid"
+              inputStyleClass="w-full input-field-pass"
+            ></p-password>
+            <span class="field-hint">Es necesario verificar tu contraseña actual antes de establecer una nueva.</span>
+          </div>
+
+          <div class="form-row-2">
+            <!-- NUEVA CONTRASEÑA -->
+            <div class="form-group">
+              <label class="form-label" for="newPass">
+                Nueva Contraseña <span class="required-star">*</span>
+              </label>
+              <p-password 
+                id="newPass" 
+                [(ngModel)]="nuevaPassword"
+                [toggleMask]="true"
+                [feedback]="true"
+                placeholder="Mínimo 6 caracteres" 
+                promptLabel="Ingresa tu nueva contraseña"
+                weakLabel="Débil"
+                mediumLabel="Media"
+                strongLabel="Fuerte"
+                styleClass="w-full p-password-fluid"
+                inputStyleClass="w-full input-field-pass"
+              ></p-password>
+
+              <!-- Feedback visual de la nueva contraseña -->
+              <div *ngIf="nuevaPassword && passwordActual && nuevaPassword === passwordActual" class="security-feedback-msg error">
+                <i-lucide [img]="ShieldAlertIcon" size="15"></i-lucide>
+                <span>La nueva contraseña no puede ser igual a tu contraseña actual.</span>
+              </div>
+              <div *ngIf="nuevaPassword && nuevaPassword.length < 6" class="security-feedback-msg warn">
+                <i-lucide [img]="ShieldAlertIcon" size="15"></i-lucide>
+                <span>Debe tener al menos 6 caracteres.</span>
+              </div>
+            </div>
+
+            <!-- CONFIRMAR NUEVA CONTRASEÑA -->
+            <div class="form-group">
+              <label class="form-label" for="confPass">
+                Confirmar Nueva Contraseña <span class="required-star">*</span>
+              </label>
+              <p-password 
+                id="confPass" 
+                [(ngModel)]="confirmarPassword"
+                [toggleMask]="true"
+                [feedback]="false"
+                placeholder="Repite tu nueva contraseña" 
+                styleClass="w-full p-password-fluid"
+                inputStyleClass="w-full input-field-pass"
+              ></p-password>
+
+              <!-- Feedback visual de confirmación -->
+              <div *ngIf="confirmarPassword && nuevaPassword !== confirmarPassword" class="security-feedback-msg error">
+                <i-lucide [img]="ShieldAlertIcon" size="15"></i-lucide>
+                <span>Las contraseñas no coinciden.</span>
+              </div>
+              <div *ngIf="confirmarPassword && nuevaPassword === confirmarPassword && nuevaPassword.length >= 6 && nuevaPassword !== passwordActual" class="security-feedback-msg success">
+                <i-lucide [img]="CheckIcon" size="15"></i-lucide>
+                <span>¡Las contraseñas coinciden!</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-footer" style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+          <button class="btn-update-password" 
+                  type="button" 
+                  [disabled]="!esPasswordValida() || guardando" 
+                  (click)="cambiarPassword()">
+            <i-lucide *ngIf="!guardando" [img]="ShieldIcon" size="18"></i-lucide>
+            <span *ngIf="guardando" class="spinner-sm"></span>
+            <span>{{ guardando ? 'Actualizando...' : 'Actualizar Contraseña' }}</span>
+          </button>
         </div>
       </div>
 

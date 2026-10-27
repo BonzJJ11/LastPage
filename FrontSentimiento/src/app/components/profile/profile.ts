@@ -11,6 +11,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { BadgeModule } from 'primeng/badge';
 import { TagModule } from 'primeng/tag';
+import { PasswordModule } from 'primeng/password';
 import { MessageService } from 'primeng/api';
 import { 
   LucideAngularModule, 
@@ -55,6 +56,7 @@ import { GuardadoService } from '../../core/services/guardado.service';
     TooltipModule,
     BadgeModule,
     TagModule,
+    PasswordModule,
     LucideAngularModule
   ],
   providers: [MessageService],
@@ -80,6 +82,7 @@ export class Profile implements OnInit {
   editFotoPerfil = '';
   
   // Cambio de contraseña
+  passwordActual = '';
   nuevaPassword = '';
   confirmarPassword = '';
 
@@ -420,13 +423,43 @@ export class Profile implements OnInit {
     });
   }
 
+  esPasswordValida(): boolean {
+    return !!(
+      this.passwordActual &&
+      this.nuevaPassword &&
+      this.confirmarPassword &&
+      this.nuevaPassword.length >= 6 &&
+      this.nuevaPassword === this.confirmarPassword &&
+      this.nuevaPassword !== this.passwordActual
+    );
+  }
+
   cambiarPassword(): void {
     if (!this.userId) return;
+
+    if (!this.passwordActual) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Campo requerido',
+        detail: 'Debes ingresar tu contraseña actual.'
+      });
+      return;
+    }
+
     if (!this.nuevaPassword || this.nuevaPassword.length < 6) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Contraseña muy corta',
-        detail: 'La contraseña debe tener al menos 6 caracteres.'
+        detail: 'La nueva contraseña debe tener al least 6 caracteres.'
+      });
+      return;
+    }
+
+    if (this.nuevaPassword === this.passwordActual) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Contraseña no permitida',
+        detail: 'La nueva contraseña no puede ser igual a la anterior.'
       });
       return;
     }
@@ -441,24 +474,30 @@ export class Profile implements OnInit {
     }
 
     this.guardando = true;
-    this.authService.updateUsuario(this.userId, { password: this.nuevaPassword }).subscribe({
-      next: () => {
+    this.authService.cambiarPassword(this.userId, { 
+      password_actual: this.passwordActual,
+      nueva_password: this.nuevaPassword,
+      confirmar_password: this.confirmarPassword
+    }).subscribe({
+      next: (res) => {
         this.guardando = false;
+        this.passwordActual = '';
         this.nuevaPassword = '';
         this.confirmarPassword = '';
         this.messageService.add({
           severity: 'success',
           summary: 'Contraseña actualizada',
-          detail: 'Tu contraseña ha sido cambiada correctamente.'
+          detail: res?.mensaje || 'Tu contraseña ha sido cambiada correctamente.'
         });
         this.cdr.detectChanges();
       },
-      error: () => {
+      error: (err) => {
         this.guardando = false;
+        const msg = err.error?.error || err.error?.detail || 'No se pudo cambiar la contraseña. Verifica que tu contraseña actual sea la correcta.';
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo cambiar la contraseña.'
+          detail: msg
         });
         this.cdr.detectChanges();
       }

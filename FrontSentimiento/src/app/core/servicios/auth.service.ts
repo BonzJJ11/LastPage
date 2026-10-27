@@ -31,6 +31,10 @@ export class AuthService {
     return this.http.patch<any>(`${this.apiUrl}/usuarios/${id}/`, data);
   }
 
+  cambiarPassword(id: number, data: { password_actual: string; nueva_password: string; confirmar_password?: string }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/usuarios/${id}/cambiar-password/`, data);
+  }
+
   deleteUsuario(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/usuarios/${id}/`);
   }

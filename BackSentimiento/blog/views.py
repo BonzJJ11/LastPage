@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth.hashers import check_password, make_password
 from django.utils import timezone
 from django.db.models import Q
 from .models import Usuario, Categoria, Publicacion, Comentario, Reaccion, Guardado, Conversacion, Mensaje, Notificacion, Reporte
@@ -34,6 +34,40 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     """
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
+
+    @action(detail=True, methods=['post'], url_path='cambiar-password')
+    def cambiar_password(self, request, pk=None):
+        usuario = self.get_object()
+        password_actual = request.data.get('password_actual')
+        nueva_password = request.data.get('nueva_password')
+        confirmar_password = request.data.get('confirmar_password')
+
+        if not password_actual:
+            return Response({'error': 'Debes ingresar tu contraseña actual.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not nueva_password:
+            return Response({'error': 'Debes ingresar una nueva contraseña.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 1. Validar que la contraseña actual ingresada sea correcta
+        if not (check_password(password_actual, usuario.password) or password_actual == usuario.password):
+            return Response({'error': 'La contraseña actual ingresada es incorrecta.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 2. Validar que la nueva contraseña no sea igual a la actual
+        if password_actual == nueva_password or check_password(nueva_password, usuario.password) or nueva_password == usuario.password:
+            return Response({'error': 'La nueva contraseña no puede ser igual a tu contraseña anterior.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 3. Validar longitud mínima
+        if len(nueva_password) < 6:
+            return Response({'error': 'La nueva contraseña debe tener al menos 6 caracteres.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 4. Validar coincidencia de confirmación
+        if confirmar_password and nueva_password != confirmar_password:
+            return Response({'error': 'Las contraseñas no coinciden.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        usuario.password = make_password(nueva_password)
+        usuario.save(update_fields=['password'])
+
+        return Response({'mensaje': 'Contraseña actualizada correctamente.'}, status=status.HTTP_200_OK)
 
     def perform_destroy(self, instance):
         # Limpieza previa para respetar integridad referencial en PostgreSQL
