@@ -504,8 +504,25 @@ export class Profile implements OnInit {
     });
   }
 
-  eliminarHistoria(id: number): void {
-    if (!confirm('¿Estás seguro de que deseas eliminar esta historia?')) return;
+  displayDeleteStoryDialog = false;
+  historiaAEliminar: any = null;
+  eliminandoHistoria = false;
+
+  abrirEliminarHistoria(story: any): void {
+    this.historiaAEliminar = story;
+    this.displayDeleteStoryDialog = true;
+  }
+
+  cancelarEliminarHistoria(): void {
+    this.displayDeleteStoryDialog = false;
+    this.historiaAEliminar = null;
+    this.eliminandoHistoria = false;
+  }
+
+  confirmarEliminarHistoria(): void {
+    if (!this.historiaAEliminar) return;
+    this.eliminandoHistoria = true;
+    const id = this.historiaAEliminar.id_publicacion;
     this.publicacionService.deletePublicacion(id).subscribe({
       next: () => {
         this.misHistorias = this.misHistorias.filter(h => h.id_publicacion !== id);
@@ -514,6 +531,9 @@ export class Profile implements OnInit {
           summary: 'Historia eliminada',
           detail: 'La historia fue eliminada correctamente.'
         });
+        this.displayDeleteStoryDialog = false;
+        this.historiaAEliminar = null;
+        this.eliminandoHistoria = false;
         this.cdr.detectChanges();
       },
       error: () => {
@@ -522,8 +542,19 @@ export class Profile implements OnInit {
           summary: 'Error',
           detail: 'No se pudo eliminar la historia.'
         });
+        this.eliminandoHistoria = false;
+        this.cdr.detectChanges();
       }
     });
+  }
+
+  eliminarHistoria(idOrStory: any): void {
+    if (idOrStory && typeof idOrStory === 'object') {
+      this.abrirEliminarHistoria(idOrStory);
+    } else {
+      const story = this.misHistorias.find(h => h.id_publicacion === idOrStory);
+      this.abrirEliminarHistoria(story || { id_publicacion: idOrStory, titulo: 'Historia' });
+    }
   }
 
   abrirDialogoEliminar(): void {

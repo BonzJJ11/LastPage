@@ -189,7 +189,7 @@
             </span>
 
             <div class="story-actions">
-              <button class="btn-action-story delete" (click)="eliminarHistoria(story.id_publicacion)" pTooltip="Eliminar historia">
+              <button class="btn-action-story delete" (click)="abrirEliminarHistoria(story)" pTooltip="Eliminar historia">
                 <i-lucide [img]="TrashIcon" size="16"></i-lucide>
               </button>
             </div>
@@ -526,6 +526,56 @@
                   [disabled]="!confirmacionPassword" 
                   [loading]="isDeleting" 
                   (onClick)="confirmarEliminarCuenta()">
+        </p-button>
+      </div>
+    </ng-template>
+  </p-dialog>
+
+  <!-- MODAL DE CONFIRMACIÓN PARA ELIMINAR HISTORIA -->
+  <p-dialog [(visible)]="displayDeleteStoryDialog" 
+            [modal]="true" 
+            [draggable]="false" 
+            [resizable]="false" 
+            [dismissableMask]="true"
+            [style]="{width: '460px', 'max-width': '95vw'}" 
+            styleClass="delete-confirm-dialog">
+    <ng-template pTemplate="header">
+      <div class="delete-dialog-header">
+        <div class="delete-icon-badge">
+          <i-lucide [img]="TrashIcon" size="22"></i-lucide>
+        </div>
+        <div class="delete-dialog-title">
+          <h3>¿Eliminar publicación?</h3>
+          <span>Esta acción no se puede deshacer</span>
+        </div>
+      </div>
+    </ng-template>
+
+    <div class="delete-dialog-body" *ngIf="historiaAEliminar">
+      <p class="warning-text">
+        ¿Estás seguro de que deseas eliminar esta historia? Se borrará de forma permanente junto con todos sus comentarios y reacciones.
+      </p>
+
+      <div style="background: #fff5f5; border: 1px solid #fed7d7; border-left: 4px solid #e53e3e; border-radius: 10px; padding: 12px 14px; margin-bottom: 1rem;">
+        <div style="font-weight: 600; font-size: 0.95rem; color: #1a202c; margin-bottom: 4px;">{{ historiaAEliminar.titulo }}</div>
+        <div style="font-size: 0.85rem; color: #718096; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4;">{{ historiaAEliminar.contenido }}</div>
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <div class="delete-dialog-footer">
+        <p-button label="Cancelar" 
+                  styleClass="p-button-text" 
+                  (onClick)="cancelarEliminarHistoria()"
+                  [disabled]="eliminandoHistoria">
+        </p-button>
+        <p-button label="Sí, eliminar" 
+                  styleClass="btn-confirm-delete" 
+                  [loading]="eliminandoHistoria" 
+                  (onClick)="confirmarEliminarHistoria()">
+          <ng-template pTemplate="icon">
+            <i-lucide [img]="TrashIcon" size="16" style="margin-right: 6px;"></i-lucide>
+          </ng-template>
         </p-button>
       </div>
     </ng-template>

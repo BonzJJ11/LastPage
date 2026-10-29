@@ -104,6 +104,11 @@ export class Home implements OnInit, OnDestroy {
   editandoPublicacionId: number | null = null;
   listaEmojis = ['😀', '😂', '🥺', '😡', '😍', '🙏', '💪', '✨', '💔', '❤️', '🔥', '🎉', '😢', '😔', '🙌', '👍'];
 
+  // Variables para eliminar publicación (Modal de confirmación)
+  displayEliminarPubDialog = false;
+  publicacionAEliminar: any = null;
+  eliminandoPub = false;
+
   // Variables para el Chat
   chatActivo = false;
   chatUsuario: any = null;
@@ -706,6 +711,9 @@ export class Home implements OnInit, OnDestroy {
     }
   }
 
+  // ==========================================
+  // GESTIÓN DE HISTORIAS: CREAR / EDITAR
+  // ==========================================
   abrirEscribir() {
     this.displayEscribirDialog = true;
     this.editandoPublicacionId = null;
@@ -724,20 +732,6 @@ export class Home implements OnInit, OnDestroy {
     this.categoriaSeleccionadaId = pub.id_categoria;
   }
 
-  eliminarPublicacion(id: number) {
-    if (confirm('¿Estás seguro de eliminar esta publicación?')) {
-      this.publicacionService.deletePublicacion(id).subscribe({
-        next: () => {
-          this.messageService.add({severity:'success', summary:'Eliminada', detail:'La publicación fue eliminada.'});
-          this.cargarPublicaciones();
-        },
-        error: () => {
-          this.messageService.add({severity:'error', summary:'Error', detail:'No se pudo eliminar la publicación.'});
-        }
-      });
-    }
-  }
-
   toggleAnonimo() {
     this.visibilidadPublicacion = this.visibilidadPublicacion === 'PUBLICO' ? 'ANONIMO' : 'PUBLICO';
   }
@@ -748,6 +742,60 @@ export class Home implements OnInit, OnDestroy {
 
   agregarEmoji(emoji: string) {
     this.contenidoHistoria += emoji;
+  }
+
+  // ==========================================
+  // GESTIÓN DE HISTORIAS: ELIMINAR (MODAL)
+  // ==========================================
+  abrirConfirmarEliminar(pub: any) {
+    this.publicacionAEliminar = pub;
+    this.displayEliminarPubDialog = true;
+  }
+
+  cancelarEliminarPublicacion() {
+    this.displayEliminarPubDialog = false;
+    setTimeout(() => {
+      if (!this.displayEliminarPubDialog) {
+        this.publicacionAEliminar = null;
+      }
+    }, 200);
+    this.eliminandoPub = false;
+  }
+
+  confirmarEliminarPublicacion() {
+    if (!this.publicacionAEliminar) return;
+    this.eliminandoPub = true;
+    const id = this.publicacionAEliminar.id_publicacion;
+    this.publicacionService.deletePublicacion(id).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Publicación eliminada',
+          detail: 'La publicación fue eliminada correctamente.'
+        });
+        this.displayEliminarPubDialog = false;
+        this.publicacionAEliminar = null;
+        this.eliminandoPub = false;
+        this.cargarPublicaciones();
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo eliminar la publicación. Inténtalo de nuevo.'
+        });
+        this.eliminandoPub = false;
+      }
+    });
+  }
+
+  eliminarPublicacion(item: any) {
+    if (item && typeof item === 'object') {
+      this.abrirConfirmarEliminar(item);
+    } else {
+      const pub = this.publicaciones.find(p => p.id_publicacion === item);
+      this.abrirConfirmarEliminar(pub || { id_publicacion: item, titulo: 'esta publicación' });
+    }
   }
 
   publicarHistoria() {

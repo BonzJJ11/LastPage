@@ -103,7 +103,7 @@
             <div style="font-size: 0.8rem; color: #888;">@{{ activeUsername }}</div>
           </div>
         </div>
-        <div style="padding: 0 10px 10px 10px;">
+        <div style="padding: 0 10px 10px 10px;"> 
           <div class="menu-item" [routerLink]="['/profile']" (click)="irAPerfil(); op.hide()" style="cursor: pointer;">
             <div class="menu-item-left"><i-lucide [img]="UserIcon" size="16"></i-lucide> Mi perfil</div>
           </div>
@@ -234,7 +234,7 @@
                 
                 <p-popover #opMenuPub [style]="{width: '150px'}">
                   <div class="menu-item" (click)="abrirEditarPublicacion(pub); opMenuPub.hide()"><i-lucide [img]="PenIcon" size="16"></i-lucide> Editar</div>
-                  <div class="menu-item" (click)="eliminarPublicacion(pub.id_publicacion); opMenuPub.hide()" style="color: #6A3FB1;"><i-lucide [img]="TrashIcon" size="16"></i-lucide> Eliminar</div>
+                  <div class="menu-item menu-item-danger" (click)="abrirConfirmarEliminar(pub); opMenuPub.hide()"><i-lucide [img]="TrashIcon" size="16"></i-lucide> Eliminar</div>
                 </p-popover>
               </div>
             </div>
@@ -710,6 +710,59 @@
     <ng-template pTemplate="footer">
       <p-button label="Cancelar" icon="pi pi-times" styleClass="p-button-text" (onClick)="dialogCategoria = false"></p-button>
       <p-button label="Guardar" icon="pi pi-check" styleClass="btn-escribir" (onClick)="guardarCategoria()"></p-button>
+    </ng-template>
+  </p-dialog>
+
+  <!-- MODAL DE CONFIRMACIÓN PARA ELIMINAR PUBLICACIÓN -->
+  <p-dialog [(visible)]="displayEliminarPubDialog" 
+            [modal]="true" 
+            [draggable]="false" 
+            [resizable]="false" 
+            [dismissableMask]="true"
+            [style]="{width: '460px', 'max-width': '95vw'}" 
+            styleClass="delete-pub-dialog">
+    <ng-template pTemplate="header">
+      <div class="delete-modal-header">
+        <div class="delete-modal-icon-badge">
+          <i-lucide [img]="TrashIcon" size="22"></i-lucide>
+        </div>
+        <div class="delete-modal-title-box">
+          <h3>¿Eliminar publicación?</h3>
+          <span>Esta acción no se puede deshacer</span>
+        </div>
+      </div>
+    </ng-template>
+
+    <div class="delete-modal-body" *ngIf="publicacionAEliminar">
+      <p class="delete-modal-warning">
+        ¿Estás seguro de que deseas eliminar esta historia? Se borrará de forma definitiva junto con sus reacciones y comentarios.
+      </p>
+
+      <div class="delete-pub-preview">
+        <div class="delete-pub-preview-title">{{ publicacionAEliminar?.titulo }}</div>
+        <div class="delete-pub-preview-content">{{ publicacionAEliminar?.contenido }}</div>
+        <div class="delete-pub-preview-tag" *ngIf="publicacionAEliminar?.nombre_categoria">
+          <i-lucide [img]="HeartIcon" size="12"></i-lucide> {{ publicacionAEliminar?.nombre_categoria }}
+        </div>
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <div class="delete-modal-footer">
+        <p-button label="Cancelar" 
+                  styleClass="p-button-text btn-cancelar-delete" 
+                  (onClick)="cancelarEliminarPublicacion()"
+                  [disabled]="eliminandoPub">
+        </p-button>
+        <p-button label="Sí, eliminar" 
+                  styleClass="btn-confirmar-delete" 
+                  [loading]="eliminandoPub" 
+                  (onClick)="confirmarEliminarPublicacion()">
+          <ng-template pTemplate="icon">
+            <i-lucide [img]="TrashIcon" size="16" style="margin-right: 6px;"></i-lucide>
+          </ng-template>
+        </p-button>
+      </div>
     </ng-template>
   </p-dialog>
 
