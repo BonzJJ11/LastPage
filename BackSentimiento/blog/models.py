@@ -174,3 +174,16 @@ class Guardado(models.Model):
         db_table = 'guardado'
         managed = False
         unique_together = (('id_usuario', 'id_publicacion'),)
+
+class RecuperacionPassword(models.Model):
+    id = models.AutoField(primary_key=True)
+    correo = models.CharField(max_length=150)
+    codigo = models.CharField(max_length=6)
+    creado_en = models.DateTimeField(default=timezone.now)
+    expira_en = models.DateTimeField()
+    usado = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'recuperacion_password'
+        managed = False
+

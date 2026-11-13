@@ -4,7 +4,11 @@ from rest_framework.response import Response
 from django.contrib.auth.hashers import check_password, make_password
 from django.utils import timezone
 from django.db.models import Q
-from .models import Usuario, Categoria, Publicacion, Comentario, Reaccion, Guardado, Conversacion, Mensaje, Notificacion, Reporte
+import random
+from datetime import timedelta
+from django.core.mail import send_mail
+from django.conf import settings
+from .models import Usuario, Categoria, Publicacion, Comentario, Reaccion, Guardado, Conversacion, Mensaje, Notificacion, Reporte, RecuperacionPassword
 from .serializers import (UsuarioSerializer, CategoriaSerializer, PublicacionSerializer,
                           ComentarioSerializer, ReaccionSerializer, GuardadoSerializer,
                           ConversacionSerializer, MensajeSerializer, NotificacionSerializer)
@@ -323,3 +327,158 @@ def upload_avatar(request):
         'nombre_archivo': archivo.name,
         'tamano_kb': round(archivo.size / 1024, 1)
     }, status=status.HTTP_201_CREATED)
+
+
+# ============================================================
+# RECUPERACIÓN DE CONTRASEÑA CON CÓDIGO OTP
+# ============================================================
+
+@api_view(['POST'])
+def solicitar_otp_password(request):
+    """
+    Paso 1: Recibe el correo, verifica que el usuario exista,
+    genera un código OTP de 6 dígitos con validez de 10 minutos y lo envía por correo.
+    """
+    correo = request.data.get('correo', '').strip().lower()
+
+    if not correo:
+        return Response({'error': 'Debes ingresar un correo electrónico.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    usuario = Usuario.objects.filter(correo__iexact=correo).first()
+    if not usuario:
+        return Response({'error': 'No existe ninguna cuenta registrada con este correo electrónico.'}, status=status.HTTP_404_NOT_FOUND)
+
+    # Invalida códigos anteriores no usados para este correo
+    RecuperacionPassword.objects.filter(correo=correo, usado=False).update(usado=True)
+
+    # Genera código de 6 dígitos numéricos
+    codigo = f"{random.randint(100000, 999999)}"
+    expira_en = timezone.now() + timedelta(minutes=10)
+
+    RecuperacionPassword.objects.create(
+        correo=correo,
+        codigo=codigo,
+        expira_en=expira_en,
+        usado=False
+    )
+
+    # Plantilla de correo HTML
+    asunto = f"{codigo} es tu código de recuperación - LastPage"
+    cuerpo_texto = f"Hola {usuario.nombre or usuario.username},\n\nTu código de recuperación es: {codigo}\n\nEste código vencerá en 10 minutos. Si no solicitaste este cambio, puedes ignorar este mensaje.\n\nEquipo LastPage"
+    
+    html_mensaje = f"""
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px 24px; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+            <div style="display: inline-block; background: #4CAF6B; color: white; padding: 10px 16px; border-radius: 12px; font-weight: bold; font-size: 20px;">
+                LastPage
+            </div>
+            <p style="color: #6b7280; font-size: 14px; margin-top: 8px;">Red de apoyo emocional y expresión</p>
+        </div>
+        <h2 style="color: #111827; font-size: 20px; font-weight: 700; margin-bottom: 12px; text-align: center;">Recuperación de contraseña</h2>
+        <p style="color: #4b5563; font-size: 15px; line-height: 1.6; margin-bottom: 24px;">
+            Hola <strong>{usuario.nombre or usuario.username}</strong>, hemos recibido una solicitud para restablecer la contraseña de tu cuenta.
+        </p>
+        <div style="background-color: #f0faf3; border: 1.5px dashed #4CAF6B; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 24px;">
+            <p style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #166534; font-weight: 600; margin: 0 0 8px 0;">Tu código de seguridad</p>
+            <div style="font-size: 34px; font-weight: 800; letter-spacing: 6px; color: #2e7d32; font-family: monospace;">{codigo}</div>
+            <p style="font-size: 12px; color: #15803d; margin: 8px 0 0 0;">Válido durante los próximos 10 minutos</p>
+        </div>
+        <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin-bottom: 24px;">
+            Si tú no solicitaste este código, puedes ignorar este mensaje de forma segura. Tu contraseña actual permanecerá intacta.
+        </p>
+        <hr style="border: none; border-top: 1px solid #f3f4f6; margin: 24px 0;" />
+        <p style="text-align: center; color: #9ca3af; font-size: 12px; margin: 0;">
+            © LastPage • Este correo fue enviado automáticamente, no respondas a esta dirección.
+        </p>
+    </div>
+    """
+
+    try:
+        send_mail(
+            subject=asunto,
+            message=cuerpo_texto,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[correo],
+            html_message=html_mensaje,
+            fail_silently=False
+        )
+    except Exception as e:
+        return Response({'error': f'No se pudo enviar el correo: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    return Response({
+        'mensaje': 'Código enviado correctamente a tu correo electrónico.',
+        'correo': correo
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+def verificar_otp_password(request):
+    """
+    Paso 2: Valida que el código OTP ingresado coincida, no haya expirado y no haya sido usado.
+    """
+    correo = request.data.get('correo', '').strip().lower()
+    codigo = str(request.data.get('codigo', '')).strip()
+
+    if not correo or not codigo:
+        return Response({'error': 'Debes enviar el correo y el código OTP.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    registro = RecuperacionPassword.objects.filter(correo=correo, codigo=codigo, usado=False).order_by('-creado_en').first()
+
+    if not registro:
+        return Response({'error': 'El código ingresado es incorrecto o no existe.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if timezone.now() > registro.expira_en:
+        return Response({'error': 'El código ha expirado. Por favor solicita uno nuevo.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response({
+        'mensaje': 'Código verificado con éxito.',
+        'valido': True
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+def restablecer_password(request):
+    """
+    Paso 3: Recibe correo, código y nueva contraseña. Valida nuevamente el código,
+    aplica el hash a la nueva contraseña y actualiza al usuario en la BD.
+    """
+    correo = request.data.get('correo', '').strip().lower()
+    codigo = str(request.data.get('codigo', '')).strip()
+    nueva_password = request.data.get('nueva_password', '')
+    confirmar_password = request.data.get('confirmar_password', '')
+
+    if not correo or not codigo:
+        return Response({'error': 'Faltan parámetros requeridos.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not nueva_password:
+        return Response({'error': 'Debes ingresar una nueva contraseña.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if len(nueva_password) < 6:
+        return Response({'error': 'La contraseña debe tener al menos 6 caracteres.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if confirmar_password and nueva_password != confirmar_password:
+        return Response({'error': 'Las contraseñas no coinciden.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    registro = RecuperacionPassword.objects.filter(correo=correo, codigo=codigo, usado=False).order_by('-creado_en').first()
+    if not registro:
+        return Response({'error': 'Código inválido o ya utilizado.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if timezone.now() > registro.expira_en:
+        return Response({'error': 'El código ha expirado. Solicita uno nuevo.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    usuario = Usuario.objects.filter(correo__iexact=correo).first()
+    if not usuario:
+        return Response({'error': 'Usuario no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+
+    # Actualizar contraseña con hash de Django
+    usuario.password = make_password(nueva_password)
+    usuario.save(update_fields=['password'])
+
+    # Marcar código como usado
+    registro.usado = True
+    registro.save(update_fields=['usado'])
+
+    return Response({
+        'mensaje': 'Contraseña restablecida con éxito. Ya puedes iniciar sesión con tu nueva contraseña.'
+    }, status=status.HTTP_200_OK)
+

@@ -81,4 +81,18 @@ export class AuthService {
   isLoggedIn(): boolean {
     return this.getToken() !== null;
   }
+
+  // Métodos de Recuperación de Contraseña con OTP
+  solicitarOtpPassword(correo: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/solicitar-otp/`, { correo });
+  }
+
+  verificarOtpPassword(correo: string, codigo: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/verificar-otp/`, { correo, codigo });
+  }
+
+  restablecerPassword(data: { correo: string; codigo: string; nueva_password: string; confirmar_password: string }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/restablecer-password/`, data);
+  }
 }
+

@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -7,6 +7,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
 import { InputOtpModule } from 'primeng/inputotp';
+import { AuthService } from '../../core/servicios/auth.service';
 
 @Component({
   selector: 'app-forgot-password',
@@ -23,8 +24,6 @@ import { InputOtpModule } from 'primeng/inputotp';
   styleUrl: './forgot-password.css',
 })
 export class ForgotPassword implements OnDestroy {
-  readonly demoCode = '847291';
-
   currentStep: number = 1;
   email = '';
   enteredCode = '';
@@ -32,13 +31,20 @@ export class ForgotPassword implements OnDestroy {
   confirmPassword = '';
 
   isSubmitted = false;
+  isLoading = false;
+  emailError = '';
   codeError = '';
   passwordError = '';
-  resendSeconds = 57;
+  resendSeconds = 60;
   private redirectTimer?: ReturnType<typeof setTimeout>;
   private resendTimer?: ReturnType<typeof setInterval>;
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
 
   get maskedEmail() {
     if (!this.email.includes('@')) {
@@ -56,23 +62,38 @@ export class ForgotPassword implements OnDestroy {
 
   sendRecoveryCode(form: NgForm) {
     this.isSubmitted = true;
+    this.emailError = '';
 
     if (form.invalid) {
       return;
     }
 
-    this.currentStep = 2;
-    this.isSubmitted = false;
-    this.codeError = '';
-    this.startResendCountdown();
+    this.isLoading = true;
+    const correoLimpio = this.email.trim().toLowerCase();
+
+    this.authService.solicitarOtpPassword(correoLimpio).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.currentStep = 2;
+        this.isSubmitted = false;
+        this.codeError = '';
+        this.startResendCountdown();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.emailError = err.error?.error || 'No se pudo enviar el código. Verifica el correo e inténtalo de nuevo.';
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   verifyCode() {
     let codeStr = '';
     if (Array.isArray(this.enteredCode)) {
-       codeStr = this.enteredCode.join('');
+      codeStr = this.enteredCode.join('');
     } else {
-       codeStr = String(this.enteredCode || '');
+      codeStr = String(this.enteredCode || '');
     }
 
     if (codeStr.length < 6) {
@@ -80,14 +101,24 @@ export class ForgotPassword implements OnDestroy {
       return;
     }
 
-    if (codeStr !== this.demoCode) {
-      this.codeError = 'El código no coincide. Usa el código demo 847291.';
-      return;
-    }
-
-    this.currentStep = 3;
+    this.isLoading = true;
     this.codeError = '';
-    this.isSubmitted = false;
+    const correoLimpio = this.email.trim().toLowerCase();
+
+    this.authService.verificarOtpPassword(correoLimpio, codeStr).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.currentStep = 3;
+        this.codeError = '';
+        this.isSubmitted = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.codeError = err.error?.error || 'El código ingresado es incorrecto o ha expirado.';
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   changeEmail() {
@@ -95,16 +126,32 @@ export class ForgotPassword implements OnDestroy {
     this.isSubmitted = false;
     this.enteredCode = '';
     this.codeError = '';
+    this.emailError = '';
+    this.cdr.detectChanges();
   }
 
   resendCode() {
-    if (!this.canResendCode) {
+    if (!this.canResendCode || this.isLoading) {
       return;
     }
 
-    this.enteredCode = '';
+    this.isLoading = true;
     this.codeError = '';
-    this.startResendCountdown();
+    const correoLimpio = this.email.trim().toLowerCase();
+
+    this.authService.solicitarOtpPassword(correoLimpio).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.enteredCode = '';
+        this.startResendCountdown();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.codeError = err.error?.error || 'No se pudo reenviar el código. Inténtalo de nuevo.';
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   saveNewPassword(form: NgForm) {
@@ -120,10 +167,36 @@ export class ForgotPassword implements OnDestroy {
       return;
     }
 
-    this.currentStep = 4;
-    this.redirectTimer = setTimeout(() => {
-      this.router.navigate(['/login']);
-    }, 1800);
+    let codeStr = '';
+    if (Array.isArray(this.enteredCode)) {
+      codeStr = this.enteredCode.join('');
+    } else {
+      codeStr = String(this.enteredCode || '');
+    }
+
+    this.isLoading = true;
+    const correoLimpio = this.email.trim().toLowerCase();
+
+    this.authService.restablecerPassword({
+      correo: correoLimpio,
+      codigo: codeStr,
+      nueva_password: this.password,
+      confirmar_password: this.confirmPassword
+    }).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.currentStep = 4;
+        this.cdr.detectChanges();
+        this.redirectTimer = setTimeout(() => {
+          this.router.navigate(['/login']);
+        }, 2200);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.passwordError = err.error?.error || 'No se pudo restablecer la contraseña. Inténtalo de nuevo.';
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   goToLogin() {
@@ -149,7 +222,7 @@ export class ForgotPassword implements OnDestroy {
       clearInterval(this.resendTimer);
     }
 
-    this.resendSeconds = 57;
+    this.resendSeconds = 60;
     this.resendTimer = setInterval(() => {
       this.resendSeconds -= 1;
 
@@ -162,3 +235,4 @@ export class ForgotPassword implements OnDestroy {
     }, 1000);
   }
 }
+
