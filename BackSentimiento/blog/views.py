@@ -470,9 +470,16 @@ def restablecer_password(request):
     if not usuario:
         return Response({'error': 'Usuario no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
+    # Validar que la nueva contraseña no sea igual a la actual (soporta hash y texto plano previo)
+    if check_password(nueva_password, usuario.password) or nueva_password == usuario.password:
+        return Response({
+            'error': 'La nueva contraseña no puede ser igual a tu contraseña anterior. Por seguridad elige una diferente.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
     # Actualizar contraseña con hash de Django
     usuario.password = make_password(nueva_password)
     usuario.save(update_fields=['password'])
+
 
     # Marcar código como usado
     registro.usado = True
