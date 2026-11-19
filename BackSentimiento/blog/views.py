@@ -48,6 +48,15 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        # Si el usuario está eliminado/inactivo, no permitir consultar su perfil
+        if not instance.activo:
+            return Response({'error': 'Este usuario ha sido eliminado o desactivado.'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+
     @action(detail=True, methods=['post'], url_path='cambiar-password')
     def cambiar_password(self, request, pk=None):
         usuario = self.get_object()

@@ -13,6 +13,7 @@ class PublicacionSerializer(serializers.ModelSerializer):
     nombre_usuario = serializers.SerializerMethodField()
     foto_perfil = serializers.SerializerMethodField()
     username = serializers.SerializerMethodField()
+    usuario_activo = serializers.SerializerMethodField()
     nombre_categoria = serializers.CharField(source='id_categoria.nombre_categoria', read_only=True)
     comentarios_count = serializers.SerializerMethodField()
     reacciones_resumen = serializers.SerializerMethodField()
@@ -24,6 +25,12 @@ class PublicacionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Publicacion
         fields = '__all__'
+
+    def get_usuario_activo(self, obj):
+        if not obj.id_usuario:
+            return False
+        return bool(obj.id_usuario.activo)
+
 
     def get_foto_perfil(self, obj):
         if obj.visibilidad == 'ANONIMO':
@@ -129,11 +136,18 @@ class UsuarioSerializer(serializers.ModelSerializer):
 class ComentarioSerializer(serializers.ModelSerializer):
     nombre_usuario = serializers.SerializerMethodField()
     foto_perfil = serializers.SerializerMethodField()
+    usuario_activo = serializers.SerializerMethodField()
     nombre_publicacion = serializers.CharField(source='id_publicacion.titulo', read_only=True)
 
     class Meta:
         model = Comentario
         fields = '__all__'
+
+    def get_usuario_activo(self, obj):
+        if not obj.id_usuario:
+            return False
+        return bool(obj.id_usuario.activo)
+
 
     def get_nombre_usuario(self, obj):
         if obj.visibilidad == 'ANONIMO':

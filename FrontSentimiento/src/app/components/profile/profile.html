@@ -38,15 +38,16 @@
     <p>Cargando perfil...</p>
   </div>
 
-  <!-- ESTADO DE ERROR -->
+  <!-- ESTADO DE ERROR / USUARIO NO ENCONTRADO O ELIMINADO -->
   <div class="profile-error-state" *ngIf="!loading && !usuario">
     <div class="error-icon-circle">
       <i-lucide [img]="ShieldAlertIcon" size="32"></i-lucide>
     </div>
-    <h3>No se pudo cargar la información del usuario</h3>
-    <p>Por favor verifica tu conexión o vuelve a iniciar sesión.</p>
+    <h3>Usuario no disponible</h3>
+    <p>Este perfil no existe o la cuenta ha sido eliminada por el usuario.</p>
     <p-button label="Volver al muro" styleClass="btn-primary-action" (onClick)="volverAHome()"></p-button>
   </div>
+
 
   <!-- CONTENIDO PRINCIPAL -->
   <main class="profile-container" *ngIf="!loading && usuario">
