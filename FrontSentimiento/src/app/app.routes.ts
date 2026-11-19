@@ -11,5 +11,7 @@ export const routes: Routes = [
   { path: 'register', component: Register },
   { path: 'forgot-password', component: ForgotPassword },
   { path: 'home', component: Home },
-  { path: 'profile', component: Profile }
+  { path: 'profile', component: Profile },
+  { path: 'profile/:id', component: Profile }
 ];
+

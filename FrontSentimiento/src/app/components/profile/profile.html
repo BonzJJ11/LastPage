@@ -65,10 +65,11 @@
             </div>
             <img *ngIf="usuario.foto_perfil" [src]="usuario.foto_perfil" class="avatar-large-img" alt="Foto de perfil" />
             
-            <button class="btn-change-avatar" (click)="fileInputHero.click()" pTooltip="Subir foto desde tus documentos">
+            <button class="btn-change-avatar" *ngIf="esMiPerfil" (click)="fileInputHero.click()" pTooltip="Subir foto desde tus documentos">
               <i-lucide [img]="CameraIcon" size="16"></i-lucide>
             </button>
           </div>
+
 
           <div class="user-details-col">
             <div class="user-identity">
@@ -85,11 +86,16 @@
               <p *ngIf="usuario.biografia" class="bio-text">
                 "{{ usuario.biografia }}"
               </p>
-              <p *ngIf="!usuario.biografia" class="bio-empty" (click)="activeTab = 'editar'">
+              <p *ngIf="!usuario.biografia && esMiPerfil" class="bio-empty" (click)="activeTab = 'editar'">
                 <i-lucide [img]="SparklesIcon" size="14"></i-lucide>
                 Aún no has agregado una biografía. Haz clic aquí para añadir una presentación sobre ti.
               </p>
+              <p *ngIf="!usuario.biografia && !esMiPerfil" class="bio-empty" style="cursor: default;">
+                <i-lucide [img]="SparklesIcon" size="14"></i-lucide>
+                Este usuario aún no ha agregado una biografía.
+              </p>
             </div>
+
           </div>
         </div>
 
@@ -142,31 +148,37 @@
     <div class="tabs-nav-bar">
       <button class="tab-btn" [class.active]="activeTab === 'historias'" (click)="activeTab = 'historias'">
         <i-lucide [img]="PenIcon" size="18"></i-lucide>
-        <span>Mis Historias ({{ misHistorias.length }})</span>
+        <span>{{ esMiPerfil ? 'Mis Historias' : 'Historias' }} ({{ misHistorias.length }})</span>
       </button>
 
-      <button class="tab-btn" [class.active]="activeTab === 'editar'" (click)="activeTab = 'editar'">
+      <button class="tab-btn" [class.active]="activeTab === 'guardados'" (click)="activeTab = 'guardados'">
+        <i-lucide [img]="BookmarkIcon" size="18"></i-lucide>
+        <span>{{ esMiPerfil ? 'Mis Guardados' : 'Guardados' }} ({{ totalGuardados }})</span>
+      </button>
+
+      <button class="tab-btn" *ngIf="esMiPerfil" [class.active]="activeTab === 'editar'" (click)="activeTab = 'editar'">
         <i-lucide [img]="UserIcon" size="18"></i-lucide>
         <span>Editar Perfil</span>
       </button>
 
-      <button class="tab-btn" [class.active]="activeTab === 'seguridad'" (click)="activeTab = 'seguridad'">
+      <button class="tab-btn" *ngIf="esMiPerfil" [class.active]="activeTab === 'seguridad'" (click)="activeTab = 'seguridad'">
         <i-lucide [img]="LockIcon" size="18"></i-lucide>
         <span>Seguridad y Cuenta</span>
       </button>
     </div>
 
+
     <!-- ============================================== -->
-    <!-- TAB 1: MIS HISTORIAS                           -->
+    <!-- TAB 1: HISTORIAS                               -->
     <!-- ============================================== -->
     <section class="tab-panel" *ngIf="activeTab === 'historias'">
       <div *ngIf="misHistorias.length === 0" class="empty-state-card">
         <div class="empty-icon-circle">
           <i-lucide [img]="PenIcon" size="32"></i-lucide>
         </div>
-        <h3>Aún no has compartido historias</h3>
-        <p>Tus vivencias, pensamientos y desahogos aparecerán aquí. ¡Comienza a escribir y conecta con la comunidad!</p>
-        <p-button label="Ir al muro para escribir" styleClass="btn-primary-action" (onClick)="volverAHome()"></p-button>
+        <h3>{{ esMiPerfil ? 'Aún no has compartido historias' : 'Este usuario aún no tiene historias públicas' }}</h3>
+        <p>{{ esMiPerfil ? 'Tus vivencias, pensamientos y desahogos aparecerán aquí. ¡Comienza a escribir y conecta con la comunidad!' : 'Cuando comparta historias públicas, podrás leerlas aquí.' }}</p>
+        <p-button *ngIf="esMiPerfil" label="Ir al muro para escribir" styleClass="btn-primary-action" (onClick)="volverAHome()"></p-button>
       </div>
 
       <div class="stories-grid" *ngIf="misHistorias.length > 0">
@@ -188,7 +200,7 @@
               {{ story.visibilidad === 'ANONIMO' ? 'Publicado como Anónimo' : 'Publicado Público' }}
             </span>
 
-            <div class="story-actions">
+            <div class="story-actions" *ngIf="esMiPerfil">
               <button class="btn-action-story delete" (click)="abrirEliminarHistoria(story)" pTooltip="Eliminar historia">
                 <i-lucide [img]="TrashIcon" size="16"></i-lucide>
               </button>
@@ -197,6 +209,43 @@
         </article>
       </div>
     </section>
+
+    <!-- ============================================== -->
+    <!-- TAB GUARDADOS                                  -->
+    <!-- ============================================== -->
+    <section class="tab-panel" *ngIf="activeTab === 'guardados'">
+      <div *ngIf="historiasGuardadas.length === 0" class="empty-state-card">
+        <div class="empty-icon-circle">
+          <i-lucide [img]="BookmarkIcon" size="32"></i-lucide>
+        </div>
+        <h3>{{ esMiPerfil ? 'Aún no has guardado historias' : 'No hay historias guardadas visibles' }}</h3>
+        <p>{{ esMiPerfil ? 'Las historias que guardes en el muro para leer más tarde aparecerán aquí.' : 'Este usuario no tiene publicaciones guardadas.' }}</p>
+        <p-button *ngIf="esMiPerfil" label="Explorar el muro" styleClass="btn-primary-action" (onClick)="volverAHome()"></p-button>
+      </div>
+
+      <div class="stories-grid" *ngIf="historiasGuardadas.length > 0">
+        <article class="story-card" *ngFor="let story of historiasGuardadas">
+          <div class="story-header">
+            <span class="category-pill">
+              <i-lucide [img]="HeartIcon" size="12"></i-lucide>
+              {{ story.nombre_categoria || 'Guardado' }}
+            </span>
+            <div class="story-date">{{ formatearFecha(story.fecha_publicacion) }}</div>
+          </div>
+
+          <h4 class="story-title">{{ story.titulo }}</h4>
+          <p class="story-content">{{ story.contenido }}</p>
+
+          <div class="story-footer">
+            <span class="visibility-tag" [ngClass]="{'anon': story.visibilidad === 'ANONIMO'}">
+              <i-lucide [img]="story.visibilidad === 'ANONIMO' ? LockIcon : SparklesIcon" size="12"></i-lucide>
+              {{ story.visibilidad === 'ANONIMO' ? 'Publicación Anónima' : ('De ' + (story.nombre_usuario || 'Usuario')) }}
+            </span>
+          </div>
+        </article>
+      </div>
+    </section>
+
 
     <!-- ============================================== -->
     <!-- TAB 2: EDITAR PERFIL                           -->

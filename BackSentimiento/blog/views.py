@@ -17,7 +17,16 @@ class PublicacionViewSet(viewsets.ModelViewSet):
     queryset = Publicacion.objects.all().order_by('-fecha_publicacion')
     serializer_class = PublicacionSerializer
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        id_autor = self.request.query_params.get('id_autor', None)
+        if id_autor is not None:
+            # Filtrar publicaciones de un autor específico
+            queryset = queryset.filter(id_usuario=id_autor)
+        return queryset
+
     def perform_destroy(self, instance):
+
         # Limpieza de dependencias antes de eliminar la publicación
         Mensaje.objects.filter(id_conversacion__id_publicacion=instance).delete()
         Conversacion.objects.filter(id_publicacion=instance).delete()

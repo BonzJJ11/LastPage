@@ -23,10 +23,21 @@ export class PublicacionService {
 
   constructor(private http: HttpClient) {}
 
-  getPublicaciones(idUsuario?: number): Observable<Publicacion[]> {
-    const url = idUsuario ? `${this.apiUrl}?id_usuario=${idUsuario}` : this.apiUrl;
+  getPublicaciones(idUsuario?: number, idAutor?: number): Observable<Publicacion[]> {
+    let url = this.apiUrl;
+    const params: string[] = [];
+    if (idUsuario) {
+      params.push(`id_usuario=${idUsuario}`);
+    }
+    if (idAutor) {
+      params.push(`id_autor=${idAutor}`);
+    }
+    if (params.length > 0) {
+      url += `?${params.join('&')}`;
+    }
     return this.http.get<Publicacion[]>(url);
   }
+
 
   createPublicacion(publicacion: Publicacion): Observable<Publicacion> {
     return this.http.post<Publicacion>(this.apiUrl, publicacion);

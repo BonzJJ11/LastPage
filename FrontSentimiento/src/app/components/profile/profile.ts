@@ -64,17 +64,22 @@ import { GuardadoService } from '../../core/services/guardado.service';
   styleUrl: './profile.css'
 })
 export class Profile implements OnInit {
-  userId: number | null = null;
+  userId: number | null = null;          // ID del usuario logueado
+  perfilId: number | null = null;        // ID del perfil que se está visualizando
+  esMiPerfil = true;                     // True si ve su propio perfil, False si ve a otro
+
   usuario: any = null;
   loading = true;
   guardando = false;
 
   // Tabs
-  activeTab: 'historias' | 'editar' | 'seguridad' = 'historias';
+  activeTab: 'historias' | 'guardados' | 'editar' | 'seguridad' = 'historias';
 
   // Estadísticas y contenido
   misHistorias: any[] = [];
+  historiasGuardadas: any[] = [];
   totalGuardados = 0;
+
 
   // Formulario de edición
   editNombre = '';
@@ -150,13 +155,37 @@ export class Profile implements OnInit {
       }
     }
 
-    this.route.queryParams.subscribe(params => {
-      if (params['tab'] && ['historias', 'editar', 'seguridad'].includes(params['tab'])) {
-        this.activeTab = params['tab'];
+    this.route.params.subscribe(params => {
+      const paramId = params['id'];
+      if (paramId && !isNaN(Number(paramId))) {
+        this.perfilId = Number(paramId);
+      } else {
+        this.perfilId = null;
       }
+      this.inicializarPerfil();
     });
 
-    if (!this.userId) {
+    this.route.queryParams.subscribe(params => {
+      if (params['tab'] && ['historias', 'guardados', 'editar', 'seguridad'].includes(params['tab'])) {
+        this.activeTab = params['tab'] as any;
+      }
+    });
+  }
+
+  inicializarPerfil(): void {
+    // Si no hay id en la URL, se asume que ve su propio perfil
+    if (!this.perfilId) {
+      this.perfilId = this.userId;
+      this.esMiPerfil = true;
+    } else {
+      this.esMiPerfil = (this.perfilId === this.userId);
+      // Si está viendo el perfil de otro, no puede estar en editar ni seguridad
+      if (!this.esMiPerfil && (this.activeTab === 'editar' || this.activeTab === 'seguridad')) {
+        this.activeTab = 'historias';
+      }
+    }
+
+    if (!this.userId && this.esMiPerfil) {
       const activeUser = typeof window !== 'undefined' ? localStorage.getItem('active_username') : null;
       if (activeUser) {
         this.loading = true;
@@ -165,11 +194,12 @@ export class Profile implements OnInit {
             const found = usuarios.find((u: any) => u.username?.toLowerCase() === activeUser.toLowerCase());
             if (found && found.id_usuario) {
               this.userId = found.id_usuario;
+              this.perfilId = found.id_usuario;
               if (typeof window !== 'undefined') {
                 localStorage.setItem('user_id', String(found.id_usuario));
               }
               this.cargarDatosPerfil();
-              this.cargarMisHistorias();
+              this.cargarHistoriasPerfil();
               this.cargarEstadisticas();
             } else {
               this.router.navigate(['/login']);
@@ -185,30 +215,32 @@ export class Profile implements OnInit {
     }
 
     this.cargarDatosPerfil();
-    this.cargarMisHistorias();
+    this.cargarHistoriasPerfil();
     this.cargarEstadisticas();
   }
 
   cargarDatosPerfil(): void {
-    if (!this.userId) return;
+    const idParaCargar = this.perfilId || this.userId;
+    if (!idParaCargar) return;
     this.loading = true;
-    this.authService.getUsuario(this.userId).subscribe({
+    this.authService.getUsuario(idParaCargar).subscribe({
       next: (data) => {
         this.usuario = data;
-        this.editNombre = data.nombre || '';
-        this.editBiografia = data.biografia || '';
-        this.editFotoPerfil = data.foto_perfil || '';
-        this.loading = false;
+        if (this.esMiPerfil) {
+          this.editNombre = data.nombre || '';
+          this.editBiografia = data.biografia || '';
+          this.editFotoPerfil = data.foto_perfil || '';
 
-        if (typeof window !== 'undefined' && window.localStorage) {
-          if (data.foto_perfil) {
-            localStorage.setItem('user_photo', data.foto_perfil);
-          } else {
-            localStorage.removeItem('user_photo');
+          if (typeof window !== 'undefined' && window.localStorage) {
+            if (data.foto_perfil) {
+              localStorage.setItem('user_photo', data.foto_perfil);
+            } else {
+              localStorage.removeItem('user_photo');
+            }
+            if (data.username) localStorage.setItem('active_username', data.username);
           }
-          if (data.username) localStorage.setItem('active_username', data.username);
         }
-
+        this.loading = false;
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -224,11 +256,19 @@ export class Profile implements OnInit {
     });
   }
 
-  cargarMisHistorias(): void {
-    if (!this.userId) return;
-    this.publicacionService.getPublicaciones(this.userId).subscribe({
+  cargarHistoriasPerfil(): void {
+    const idParaCargar = this.perfilId || this.userId;
+    if (!idParaCargar) return;
+    // getPublicaciones(idUsuarioContexto, idAutor)
+    this.publicacionService.getPublicaciones(this.userId ?? undefined, idParaCargar).subscribe({
       next: (data) => {
-        this.misHistorias = data.filter((p: any) => p.id_usuario === this.userId);
+        // Si es el propio perfil, puede ver todas sus historias (incluso anónimas creadas por él).
+        // Si es el perfil de OTRA persona, NO debe mostrar las que el otro publicó como anónimo
+        if (this.esMiPerfil) {
+          this.misHistorias = data.filter((p: any) => p.id_usuario === idParaCargar);
+        } else {
+          this.misHistorias = data.filter((p: any) => p.id_usuario === idParaCargar && p.visibilidad !== 'ANONIMO');
+        }
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Error al cargar historias:', err)
@@ -236,15 +276,18 @@ export class Profile implements OnInit {
   }
 
   cargarEstadisticas(): void {
-    if (!this.userId) return;
-    this.guardadoService.getGuardadosPorUsuario(this.userId).subscribe({
+    const idParaCargar = this.perfilId || this.userId;
+    if (!idParaCargar) return;
+    this.guardadoService.getGuardadosPorUsuario(idParaCargar).subscribe({
       next: (data) => {
         this.totalGuardados = data.length;
+        this.historiasGuardadas = data.map((g: any) => g.publicacion).filter((p: any) => !!p);
         this.cdr.detectChanges();
       },
       error: () => {}
     });
   }
+
 
   seleccionarAvatar(url: string): void {
     this.editFotoPerfil = url;

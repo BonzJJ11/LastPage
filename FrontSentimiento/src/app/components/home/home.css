@@ -299,6 +299,18 @@
   gap: 12px;
 }
 
+.author-clickable-name {
+  transition: color 0.2s ease;
+}
+
+.author-info:hover .author-clickable-name,
+.comment-author:hover .author-clickable-name,
+.user-item-info:hover .author-clickable-name {
+  color: #4CAF6B !important;
+  text-decoration: underline;
+}
+
+
 .author-avatar {
   width: 40px;
   height: 40px;

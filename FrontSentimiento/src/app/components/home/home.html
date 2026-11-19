@@ -209,7 +209,7 @@
             <div class="post-header">
               
               <!-- INFORMACIÓN AUTOR (Anónimo o Público) -->
-              <div class="author-info">
+              <div class="author-info" [style.cursor]="pub.visibilidad === 'PUBLICO' && pub.id_usuario ? 'pointer' : 'default'" (click)="pub.visibilidad === 'PUBLICO' && irAPerfilUsuario(pub.id_usuario)">
                 <!-- Avatar -->
                 <ng-container *ngIf="pub.visibilidad === 'PUBLICO'">
                   <img *ngIf="pub.foto_perfil" [src]="pub.foto_perfil" class="author-avatar" style="object-fit: cover;" alt="Avatar" />
@@ -223,11 +223,12 @@
                 
                 <!-- Detalles -->
                 <div class="author-details">
-                  <h4 *ngIf="pub.visibilidad === 'PUBLICO'">{{ pub.nombre_usuario }}</h4>
+                  <h4 *ngIf="pub.visibilidad === 'PUBLICO'" class="author-clickable-name">{{ pub.nombre_usuario }}</h4>
                   <h4 *ngIf="pub.visibilidad === 'ANONIMO'">Usuario anónimo <span class="anon-badge">Anónimo</span></h4>
                   <p>{{ pub.tiempoStr }}</p>
                 </div>
               </div>
+
 
               <div style="display: flex; align-items: center; gap: 10px;">
                 <i-lucide [img]="MoreIcon" size="18" style="color: #888; cursor: pointer;" (click)="opMenuPub.toggle($event)" *ngIf="pub.id_usuario === userId"></i-lucide>
@@ -360,8 +361,8 @@
                 <div class="comment-item" *ngFor="let com of pub.comentariosList; trackBy: trackByComId">
                   <!-- Avatar del comentario -->
                   <ng-container *ngIf="com.visibilidad === 'PUBLICO'">
-                    <img *ngIf="com.foto_perfil" [src]="com.foto_perfil" class="comment-avatar" style="object-fit: cover;" alt="Avatar" />
-                    <div class="comment-avatar" *ngIf="!com.foto_perfil">
+                    <img *ngIf="com.foto_perfil" [src]="com.foto_perfil" class="comment-avatar" style="object-fit: cover; cursor: pointer;" (click)="irAPerfilUsuario(com.id_usuario)" alt="Avatar" />
+                    <div class="comment-avatar" *ngIf="!com.foto_perfil" style="cursor: pointer;" (click)="irAPerfilUsuario(com.id_usuario)">
                       {{ com.nombre_usuario ? com.nombre_usuario.charAt(0).toUpperCase() : 'U' }}
                     </div>
                   </ng-container>
@@ -369,17 +370,21 @@
                     ?
                   </div>
                   <div class="comment-body">
-                    <div class="comment-author">
-                      {{ com.visibilidad === 'ANONIMO' ? 'Anónimo' : com.nombre_usuario }}
+                    <div class="comment-author" [style.cursor]="com.visibilidad === 'PUBLICO' && com.id_usuario ? 'pointer' : 'default'" (click)="com.visibilidad === 'PUBLICO' && irAPerfilUsuario(com.id_usuario)">
+                      <span class="author-clickable-name">{{ com.visibilidad === 'ANONIMO' ? 'Anónimo' : com.nombre_usuario }}</span>
                       <span class="comment-anon-tag" *ngIf="com.visibilidad === 'ANONIMO'">anónimo</span>
                     </div>
                     <div class="comment-text">{{ com.contenido }}</div>
-                    <div class="comment-actions" *ngIf="com.id_usuario !== userId && com.visibilidad === 'PUBLICO'" style="margin-top: 5px;">
-                      <span (click)="abrirChat(com)" style="font-size: 0.8rem; color: #4CAF6B; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                    <div class="comment-actions" style="margin-top: 5px; display: flex; gap: 12px; align-items: center;">
+                      <span (click)="irAPerfilUsuario(com.id_usuario)" *ngIf="com.visibilidad === 'PUBLICO' && com.id_usuario" style="font-size: 0.8rem; color: #6A3FB1; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                        <i-lucide [img]="UserIcon" size="13"></i-lucide> Ver perfil
+                      </span>
+                      <span (click)="abrirChat(com)" *ngIf="com.id_usuario !== userId && com.visibilidad === 'PUBLICO'" style="font-size: 0.8rem; color: #4CAF6B; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
                         <i-lucide [img]="MessageCircleIcon" size="14"></i-lucide> Enviar mensaje
                       </span>
                     </div>
                   </div>
+
                 </div>
                 <!-- Estado vacío -->
                 <div class="comment-empty" *ngIf="pub.comentariosList?.length === 0">
@@ -545,18 +550,22 @@
             No hay otros usuarios registrados aún.
           </div>
           <div class="user-item" *ngFor="let u of usuariosComunidad">
-            <div class="user-item-info">
+            <div class="user-item-info" style="cursor: pointer;" (click)="irAPerfilUsuario(u.id_usuario)">
               <img *ngIf="u.foto_perfil" [src]="u.foto_perfil" class="user-avatar" style="object-fit: cover;" alt="Avatar" />
               <div *ngIf="!u.foto_perfil" class="user-avatar" style="background-color: #4CAF6B;">
                 {{ (u.nombre || u.username).charAt(0).toUpperCase() }}
               </div>
               <div class="user-item-text">
-                <h5>{{ u.nombre || u.username }}</h5>
+                <h5 class="author-clickable-name">{{ u.nombre || u.username }}</h5>
                 <p>@{{ u.username }}</p>
               </div>
             </div>
-            <button class="btn-chat" (click)="chatearConUsuario(u)">Chat</button>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn-chat" style="background: #f0edf8; color: #6A3FB1; border: none; padding: 4px 8px; border-radius: 6px; font-size: 0.78rem; cursor: pointer;" (click)="irAPerfilUsuario(u.id_usuario)" title="Ver perfil">Perfil</button>
+              <button class="btn-chat" (click)="chatearConUsuario(u)">Chat</button>
+            </div>
           </div>
+
         </div>
       </div>
     </aside>

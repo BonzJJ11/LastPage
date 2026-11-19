@@ -982,6 +982,20 @@ export class Home implements OnInit, OnDestroy {
     });
   }
 
+  irAPerfilUsuario(idUsuario?: number) {
+    if (!idUsuario) return;
+    if (idUsuario === this.userId) {
+      this.irAPerfil();
+      return;
+    }
+    this.router.navigate(['/profile', idUsuario]).catch(() => {
+      if (typeof window !== 'undefined') {
+        window.location.href = `/profile/${idUsuario}`;
+      }
+    });
+  }
+
+
   irAPerfilTab(tab: string) {
     this.router.navigate(['/profile'], { queryParams: { tab } }).catch(() => {
       if (typeof window !== 'undefined') {
